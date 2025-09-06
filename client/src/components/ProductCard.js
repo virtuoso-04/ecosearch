@@ -5,6 +5,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Button, Card } from './ui';
+import { handleImageError, getImageUrl } from '../utils/imageUtils';
 
 function ProductCard({ 
   product, 
@@ -28,18 +29,14 @@ function ProductCard({
     <Card className="p-6 hover:shadow-xl transition-shadow">
       {/* Product Image */}
       <div className="relative mb-4">
-        <div 
-          className="w-full h-48 bg-gray-200 rounded-lg bg-cover bg-center"
-          style={{ 
-            backgroundImage: product.imageUrl ? `url(${product.imageUrl})` : 'none'
-          }}
-        >
-          {!product.imageUrl && (
-            <div className="flex items-center justify-center h-full text-gray-400">
-              <span className="text-4xl">📦</span>
-            </div>
-          )}
-        </div>
+        <Link to={`/product/${product.id}`} className="block">
+          <img 
+            src={getImageUrl(product.imageUrl)}
+            alt={product.title || "Product Image"}
+            className="w-full h-48 object-cover rounded-lg"
+            onError={handleImageError}
+          />
+        </Link>
         
         {/* Category Badge */}
         {product.category && (

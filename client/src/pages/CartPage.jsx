@@ -3,6 +3,7 @@ import { cartApi } from '../utils/api';
 import { Trash2, Plus, Minus, ShoppingBag, ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import cartService from '../services/cartService';
+import { handleImageError, getImageUrl } from '../utils/imageUtils';
 
 const CartPage = () => {
   const [cartItems, setCartItems] = useState([]);
@@ -118,9 +119,10 @@ const CartPage = () => {
                   <div key={item.id} className="p-6 flex items-center space-x-4">
                     {/* Product Image */}
                     <img
-                      src={item.image}
+                      src={getImageUrl(item.image)}
                       alt={item.title}
                       className="w-20 h-20 object-cover rounded-lg"
+                      onError={handleImageError}
                     />
                     
                     {/* Product Details */}

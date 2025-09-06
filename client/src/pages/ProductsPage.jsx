@@ -6,6 +6,7 @@ import { productsApi } from '../utils/api';
 import { CATEGORIES, CONDITIONS, getConditionColor, getCategoryLabel } from '../constants/categories';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import cartService from '../services/cartService';
+import { handleImageError, getImageUrl } from '../utils/imageUtils';
 
 const ProductsPage = () => {
   const [products, setProducts] = useState([]);
@@ -444,15 +445,13 @@ const ProductsPage = () => {
                 viewMode === 'list' ? 'flex p-4' : 'overflow-hidden'
               }`}
             >
-              {/* Product Image with Link - HACKATHON MOD: Updated image handling */}
+              {/* Product Image with Link - Updated with better image handling */}
               <Link to={`/products/${product.id}`} className={viewMode === 'list' ? 'w-32 h-32 flex-shrink-0 mr-4' : 'aspect-square'}>
                 <img
-                  src={product.image_url || '/placeholder-image.svg'}
+                  src={getImageUrl(product.image_url)}
                   alt={product.title}
                   className="w-full h-full object-cover rounded-lg"
-                  onError={(e) => {
-                    e.target.src = '/placeholder-image.svg';
-                  }}
+                  onError={handleImageError}
                 />
               </Link>
 

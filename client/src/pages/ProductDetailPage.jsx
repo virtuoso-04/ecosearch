@@ -14,6 +14,7 @@ import {
 import { productsApi } from '../utils/api';
 import { getConditionColor, getCategoryLabel } from '../constants/categories';
 import cartService from '../services/cartService';
+import { handleImageError, getImageUrl } from '../utils/imageUtils';
 
 const ProductDetailPage = () => {
   const { id } = useParams();
@@ -199,12 +200,10 @@ const ProductDetailPage = () => {
           <div>
             <div className="aspect-square bg-white rounded-lg overflow-hidden mb-4">
               <img 
-                src={images[activeImage]} 
+                src={getImageUrl(images[activeImage])} 
                 alt={product.title} 
                 className="w-full h-full object-contain"
-                onError={(e) => {
-                  e.target.src = '/placeholder-image.svg';
-                }}
+                onError={handleImageError}
               />
             </div>
             
@@ -222,12 +221,10 @@ const ProductDetailPage = () => {
                     }`}
                   >
                     <img 
-                      src={image} 
+                      src={getImageUrl(image)} 
                       alt={`${product.title} - Image ${index + 1}`} 
                       className="w-full h-full object-cover"
-                      onError={(e) => {
-                        e.target.src = '/placeholder-image.svg';
-                      }}
+                      onError={handleImageError}
                     />
                   </button>
                 ))}
