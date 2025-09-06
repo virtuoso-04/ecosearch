@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { Filter, Grid, List, Star, MapPin, Heart, ShoppingCart, CheckCircle } from 'lucide-react';
 import { productsApi } from '../utils/api';
 import { CATEGORIES, CONDITIONS, getConditionColor, getCategoryLabel } from '../constants/categories';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import cartService from '../services/cartService';
 
 const ProductsPage = () => {
@@ -13,11 +13,13 @@ const ProductsPage = () => {
   const [viewMode, setViewMode] = useState('grid');
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
+  const [searchParams, setSearchParams] = useSearchParams();
   const [filters, setFilters] = useState({
-    category: '',
-    condition: '',
-    priceRange: '',
-    sortBy: 'newest'
+    category: searchParams.get('category') || '',
+    condition: searchParams.get('condition') || '',
+    priceRange: searchParams.get('priceRange') || '',
+    sortBy: searchParams.get('sortBy') || 'newest',
+    search: searchParams.get('search') || ''
   });
   const [addingToCart, setAddingToCart] = useState({});
   const [notification, setNotification] = useState(null);
@@ -442,8 +444,8 @@ const ProductsPage = () => {
                 viewMode === 'list' ? 'flex p-4' : 'overflow-hidden'
               }`}
             >
-              {/* Product Image - HACKATHON MOD: Updated image handling */}
-              <div className={viewMode === 'list' ? 'w-32 h-32 flex-shrink-0 mr-4' : 'aspect-square'}>
+              {/* Product Image with Link - HACKATHON MOD: Updated image handling */}
+              <Link to={`/products/${product.id}`} className={viewMode === 'list' ? 'w-32 h-32 flex-shrink-0 mr-4' : 'aspect-square'}>
                 <img
                   src={product.image_url || '/placeholder-image.svg'}
                   alt={product.title}
@@ -452,14 +454,16 @@ const ProductsPage = () => {
                     e.target.src = '/placeholder-image.svg';
                   }}
                 />
-              </div>
+              </Link>
 
               {/* Product Info */}
               <div className={viewMode === 'list' ? 'flex-1' : 'p-4'}>
                 <div className="flex justify-between items-start mb-2">
-                  <h3 className="font-semibold text-gray-900 line-clamp-2">
-                    {product.title}
-                  </h3>
+                  <Link to={`/products/${product.id}`} className="hover:text-green-700">
+                    <h3 className="font-semibold text-gray-900 line-clamp-2">
+                      {product.title}
+                    </h3>
+                  </Link>
                   <button
                     onClick={() => toggleFavorite(product.id)}
                     className={`p-1 rounded-full ${product.isFavorite ? 'text-red-500' : 'text-gray-400 hover:text-red-500'}`}
@@ -501,32 +505,40 @@ const ProductsPage = () => {
                       </span>
                     )}
                   </div>
-                  <button 
-                    onClick={() => handleAddToCart(product)}
-                    disabled={addingToCart[product.id]}
-                    className={`flex items-center justify-center gap-1 px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-                      notification?.productId === product.id && notification?.type === 'success'
-                        ? 'bg-green-500 text-white'
-                        : 'bg-green-600 hover:bg-green-700 text-white'
-                    }`}
-                  >
-                    {addingToCart[product.id] ? (
-                      <>
-                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                        <span>Adding...</span>
-                      </>
-                    ) : notification?.productId === product.id && notification?.type === 'success' ? (
-                      <>
-                        <CheckCircle className="w-4 h-4" />
-                        <span>Added</span>
-                      </>
-                    ) : (
-                      <>
-                        <ShoppingCart className="w-4 h-4" />
-                        <span>Add to Cart</span>
-                      </>
-                    )}
-                  </button>
+                  <div className="flex space-x-2">
+                    <Link 
+                      to={`/products/${product.id}`}
+                      className="flex items-center justify-center gap-1 px-3 py-2 rounded-md text-sm font-medium border border-gray-300 hover:bg-gray-50"
+                    >
+                      Details
+                    </Link>
+                    <button 
+                      onClick={() => handleAddToCart(product)}
+                      disabled={addingToCart[product.id]}
+                      className={`flex items-center justify-center gap-1 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                        notification?.productId === product.id && notification?.type === 'success'
+                          ? 'bg-green-500 text-white'
+                          : 'bg-green-600 hover:bg-green-700 text-white'
+                      }`}
+                    >
+                      {addingToCart[product.id] ? (
+                        <>
+                          <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                          <span>Adding...</span>
+                        </>
+                      ) : notification?.productId === product.id && notification?.type === 'success' ? (
+                        <>
+                          <CheckCircle className="w-4 h-4" />
+                          <span>Added</span>
+                        </>
+                      ) : (
+                        <>
+                          <ShoppingCart className="w-4 h-4" />
+                          <span>Add</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
