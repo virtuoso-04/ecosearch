@@ -440,18 +440,7 @@ npm run clean          # Clean node_modules and build files
 
 ---
 
-## 🏆 Demo Highlights
-
-### **Quick Demo Script**
-1. **Setup** (30 seconds): `npm run dev`
-2. **Homepage**: Show sustainable marketplace concept
-3. **Browse Products**: Demonstrate search and filtering
-4. **Product Details**: Show detailed product information
-5. **Shopping Cart**: Add items and checkout flow
-6. **Sell Item**: Create a new product listing
-7. **Dashboard**: User statistics and management
-
-### **Key Selling Points**
+## 🏆 **Key Selling Points**
 - ⚡ **Fast Setup**: Running in under 60 seconds
 - 📱 **Mobile Ready**: Perfect mobile experience
 - 🎨 **Professional UI**: Modern, clean design
@@ -484,13 +473,6 @@ npm run clean          # Clean node_modules and build files
 - **Documentation**: This README and inline code comments
 - **Demo**: Available at [localhost:5173](http://localhost:5173) after setup
 
----
-
-## 📄 License
-
-MIT License - see [LICENSE](LICENSE) file for details.
-
----
 
 <div align="center">
 
