@@ -10,6 +10,7 @@ import CreateProductPage from './pages/CreateProductPage'; // HACKATHON MOD: Add
 import MyListingsPage from './pages/MyListingsPage'; // HACKATHON MOD: Added my listings page
 import CartPage from './pages/CartPage';
 import DashboardPage from './pages/DashboardPage';
+import PreviousPurchasesPage from './pages/PreviousPurchasesPage';
 
 function App() {
   return (
@@ -33,6 +34,7 @@ function App() {
                   <Route path="/sell" element={<Navigate to="/create-product" replace />} /> {/* Redirect /sell to /create-product */}
                   <Route path="/my-listings" element={<MyListingsPage />} /> {/* HACKATHON MOD: Added my listings route */}
                   <Route path="/cart" element={<CartPage />} />
+                  <Route path="/purchases" element={<PreviousPurchasesPage />} />
                   <Route path="/dashboard" element={<DashboardPage />} />
                   <Route path="*" element={<div className="min-h-screen flex items-center justify-center"><h1 className="text-2xl font-bold">Page Not Found</h1></div>} />
                 </Routes>

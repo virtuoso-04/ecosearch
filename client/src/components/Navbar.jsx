@@ -135,6 +135,17 @@ const Header = () => {
               <span className="hidden lg:inline">Profile</span>
             </Link>
             <Link
+              to="/purchases"
+              className={`flex items-center space-x-1 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                isActive('/purchases')
+                  ? 'bg-green-100 text-green-700'
+                  : 'text-gray-700 hover:text-green-600'
+              }`}
+            >
+              <ShoppingBag className="h-4 w-4" />
+              <span className="hidden lg:inline">Purchases</span>
+            </Link>
+            <Link
               to="/login"
               className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors"
             >
@@ -237,6 +248,18 @@ const Header = () => {
             >
               <User className="h-4 w-4" />
               <span>My Profile</span>
+            </Link>
+            <Link
+              to="/purchases"
+              className={`flex items-center space-x-2 px-3 py-2 rounded-md text-base font-medium ${
+                isActive('/purchases')
+                  ? 'bg-green-100 text-green-700'
+                  : 'text-gray-700 hover:text-green-600 hover:bg-gray-50'
+              }`}
+              onClick={() => setIsMenuOpen(false)}
+            >
+              <ShoppingBag className="h-4 w-4" />
+              <span>My Purchases</span>
             </Link>
             <div className="pt-2 border-t border-gray-200">
               <Link
