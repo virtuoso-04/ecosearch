@@ -2,14 +2,36 @@
 // - Added navigation to /create-product route
 // - Enhanced mobile menu with quick create access
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Search, ShoppingCart, User, Menu, X, Plus } from 'lucide-react';
+import cartService from '../services/cartService';
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [cartCount, setCartCount] = useState(0);
   const location = useLocation();
+  
+  useEffect(() => {
+    // Update cart count when component mounts or location changes
+    updateCartCount();
+    
+    // Set up an interval to check for cart updates
+    const intervalId = setInterval(updateCartCount, 2000);
+    
+    return () => clearInterval(intervalId);
+  }, [location]);
+  
+  const updateCartCount = () => {
+    try {
+      const cart = cartService.getCart();
+      const count = cart.reduce((total, item) => total + item.quantity, 0);
+      setCartCount(count);
+    } catch (error) {
+      console.error('Error updating cart count:', error);
+    }
+  };
 
   const isActive = (path) => location.pathname === path;
 
@@ -98,7 +120,7 @@ const Header = () => {
             </Link>
             <Link
               to="/cart"
-              className={`flex items-center space-x-1 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+              className={`flex items-center space-x-1 px-3 py-2 rounded-md text-sm font-medium transition-colors relative ${
                 isActive('/cart')
                   ? 'bg-green-100 text-green-700'
                   : 'text-gray-700 hover:text-green-600'
@@ -106,6 +128,11 @@ const Header = () => {
             >
               <ShoppingCart className="h-4 w-4" />
               <span className="hidden lg:inline">Cart</span>
+              {cartCount > 0 && (
+                <span className="absolute -top-1 -right-1 bg-green-600 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                  {cartCount}
+                </span>
+              )}
             </Link>
             <Link
               to="/dashboard"
@@ -207,7 +234,7 @@ const Header = () => {
             </Link>
             <Link
               to="/cart"
-              className={`flex items-center space-x-2 px-3 py-2 rounded-md text-base font-medium ${
+              className={`flex items-center space-x-2 px-3 py-2 rounded-md text-base font-medium relative ${
                 isActive('/cart')
                   ? 'bg-green-100 text-green-700'
                   : 'text-gray-700 hover:text-green-600 hover:bg-gray-50'
@@ -216,6 +243,11 @@ const Header = () => {
             >
               <ShoppingCart className="h-4 w-4" />
               <span>Shopping Cart</span>
+              {cartCount > 0 && (
+                <span className="bg-green-600 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center ml-1">
+                  {cartCount}
+                </span>
+              )}
             </Link>
             <Link
               to="/dashboard"

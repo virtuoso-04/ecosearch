@@ -1,46 +1,79 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { cartApi } from '../utils/api';
 import { Trash2, Plus, Minus, ShoppingBag, ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import cartService from '../services/cartService';
 
 const CartPage = () => {
-  const [cartItems, setCartItems] = useState([
-    {
-      id: 1,
-      title: "iPhone 12 Pro - Excellent Condition",
-      price: 599,
-      quantity: 1,
-      image: "https://via.placeholder.com/100x100?text=iPhone",
-      seller: "TechGuru123",
-      condition: "excellent"
-    },
-    {
-      id: 2,
-      title: "Vintage Leather Jacket",
-      price: 89,
-      quantity: 1,
-      image: "https://via.placeholder.com/100x100?text=Jacket",
-      seller: "VintageCollector",
-      condition: "good"
+  const [cartItems, setCartItems] = useState([]);
+  const [loading, setLoading] = useState(true);
+  
+  useEffect(() => {
+    // Load cart data when component mounts
+    loadCartData();
+  }, []);
+  
+  const loadCartData = () => {
+    setLoading(true);
+    try {
+      // Load from local storage using our service
+      const storedCart = cartService.getCart();
+      setCartItems(storedCart);
+      
+      // In a real app with API, you would do:
+      // const response = await cartApi.getCart();
+      // setCartItems(response.data.items);
+    } catch (error) {
+      console.error('Failed to load cart:', error);
+    } finally {
+      setLoading(false);
     }
-  ]);
+  };
 
   const updateQuantity = (id, newQuantity) => {
-    if (newQuantity === 0) {
-      setCartItems(cartItems.filter(item => item.id !== id));
-    } else {
-      setCartItems(cartItems.map(item => 
-        item.id === id ? { ...item, quantity: newQuantity } : item
-      ));
+    try {
+      // Update locally
+      const updatedCart = cartService.updateQuantity(id, newQuantity);
+      setCartItems(updatedCart);
+      
+      // In a real app with API:
+      // await cartApi.updateQuantity(id, newQuantity);
+      // loadCartData();
+    } catch (error) {
+      console.error('Failed to update quantity:', error);
     }
   };
 
   const removeItem = (id) => {
-    setCartItems(cartItems.filter(item => item.id !== id));
+    try {
+      // Remove locally
+      const updatedCart = cartService.removeItem(id);
+      setCartItems(updatedCart);
+      
+      // In a real app with API:
+      // await cartApi.removeItem(id);
+      // loadCartData();
+    } catch (error) {
+      console.error('Failed to remove item:', error);
+    }
   };
 
   const subtotal = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
   const shipping = 9.99;
   const total = subtotal + shipping;
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 py-12">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto mb-4"></div>
+            <p className="text-gray-600">Loading your cart...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (cartItems.length === 0) {
     return (
@@ -153,7 +186,10 @@ const CartPage = () => {
                 </div>
               </div>
               
-              <button className="w-full bg-green-600 hover:bg-green-700 text-white py-3 px-4 rounded-lg font-medium mt-6 transition-colors">
+              <button 
+                onClick={() => alert('Checkout functionality will be implemented soon!')}
+                className="w-full bg-green-600 hover:bg-green-700 text-white py-3 px-4 rounded-lg font-medium mt-6 transition-colors"
+              >
                 Proceed to Checkout
               </button>
               

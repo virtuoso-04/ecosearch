@@ -197,6 +197,34 @@ export const healthApi = {
   check: () => fetchWithAuth('/health'),
 };
 
+// Cart API calls
+export const cartApi = {
+  getCart: () => 
+    fetchWithAuth('/cart'),
+    
+  addToCart: (productId, quantity = 1) => 
+    fetchWithAuth('/cart/add', {
+      method: 'POST',
+      body: { product_id: productId, quantity },
+    }),
+    
+  updateQuantity: (cartItemId, quantity) => 
+    fetchWithAuth(`/cart/${cartItemId}`, {
+      method: 'PUT',
+      body: { quantity },
+    }),
+    
+  removeItem: (cartItemId) => 
+    fetchWithAuth(`/cart/${cartItemId}`, {
+      method: 'DELETE',
+    }),
+    
+  clearCart: () => 
+    fetchWithAuth('/cart/clear', {
+      method: 'DELETE',
+    }),
+};
+
 // Demo API calls
 export const demoApi = {
   reset: () => fetchWithAuth('/demo/reset'),
@@ -206,5 +234,6 @@ export default {
   authApi,
   productsApi,
   healthApi,
+  cartApi,
   demoApi,
 };
