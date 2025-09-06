@@ -5,6 +5,8 @@ import HomePage from './pages/HomePage';
 import ProductsPage from './pages/ProductsPage';
 import LoginPage from './pages/LoginPage';
 import SellPage from './pages/SellPage';
+import CartPage from './pages/CartPage';
+import DashboardPage from './pages/DashboardPage';
 
 function App() {
   return (
@@ -23,8 +25,8 @@ function App() {
                 <Route path="/" element={<HomePage />} />
                 <Route path="/products" element={<ProductsPage />} />
                 <Route path="/sell" element={<SellPage />} />
-                <Route path="/cart" element={<div className="min-h-screen flex items-center justify-center"><h1 className="text-2xl font-bold">Cart Page - Coming Soon!</h1></div>} />
-                <Route path="/dashboard" element={<div className="min-h-screen flex items-center justify-center"><h1 className="text-2xl font-bold">Dashboard Page - Coming Soon!</h1></div>} />
+                <Route path="/cart" element={<CartPage />} />
+                <Route path="/dashboard" element={<DashboardPage />} />
                 <Route path="*" element={<div className="min-h-screen flex items-center justify-center"><h1 className="text-2xl font-bold">Page Not Found</h1></div>} />
               </Routes>
             </>
