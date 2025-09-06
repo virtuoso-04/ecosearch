@@ -1,3 +1,8 @@
+// HACKATHON MOD: Authentication middleware updated for demo
+// - Enhanced error handling for product creation demos
+// - Maintains existing JWT functionality with fallbacks
+// - TODO: Implement proper ownership checks post-hackathon
+
 /**
  * Authentication Middleware
  * JWT token validation and user authentication
@@ -9,6 +14,7 @@ const { User } = require('../models');
 
 /**
  * Authenticate JWT token and attach user to request
+ * // HACKATHON MOD: Enhanced for demo mode with better error messages
  */
 const authenticate = async (req, res, next) => {
   try {
@@ -17,7 +23,8 @@ const authenticate = async (req, res, next) => {
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
       return res.status(401).json({
         success: false,
-        message: 'Access token is required'
+        message: 'Access token is required. Please log in to continue.',
+        code: 'AUTH_REQUIRED' // HACKATHON MOD: Added error codes for better frontend handling
       });
     }
 
@@ -34,14 +41,16 @@ const authenticate = async (req, res, next) => {
       if (!user) {
         return res.status(401).json({
           success: false,
-          message: 'User not found'
+          message: 'User account not found. Please log in again.',
+          code: 'USER_NOT_FOUND'
         });
       }
 
       if (user.status !== 'active') {
         return res.status(401).json({
           success: false,
-          message: 'Account is not active'
+          message: 'Account is not active. Please contact support.',
+          code: 'ACCOUNT_INACTIVE'
         });
       }
 
@@ -50,14 +59,15 @@ const authenticate = async (req, res, next) => {
     } catch (jwtError) {
       return res.status(401).json({
         success: false,
-        message: 'Invalid or expired token'
+        message: 'Session expired. Please log in again.',
+        code: 'TOKEN_EXPIRED'
       });
     }
   } catch (error) {
     console.error('Authentication middleware error:', error);
     res.status(500).json({
       success: false,
-      message: 'Internal server error'
+      message: 'Authentication service temporarily unavailable'
     });
   }
 };

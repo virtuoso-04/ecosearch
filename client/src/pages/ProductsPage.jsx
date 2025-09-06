@@ -1,5 +1,12 @@
+// HACKATHON MOD: ProductsPage updated for Product Create integration
+// - Enhanced to work with new product listings
+// - Uses shared constants for consistency
+// - Improved product display with better image handling
+
 import React, { useState, useEffect } from 'react';
 import { Filter, Grid, List, Star, MapPin, Heart } from 'lucide-react';
+import { productsApi } from '../utils/api';
+import { getConditionColor, getCategoryLabel } from '../constants/categories';
 
 const ProductsPage = () => {
   const [products, setProducts] = useState([]);
@@ -74,12 +81,26 @@ const ProductsPage = () => {
   ];
 
   useEffect(() => {
-    // Simulate API call
-    setTimeout(() => {
-      setProducts(mockProducts);
-      setLoading(false);
-    }, 1000);
+    fetchProducts();
   }, []);
+
+  const fetchProducts = async () => {
+    try {
+      setLoading(true);
+      // HACKATHON MOD: Use real API instead of mock data
+      const response = await productsApi.getProducts({
+        page: 1,
+        limit: 20
+      });
+      setProducts(response.data.products);
+    } catch (error) {
+      console.error('Failed to fetch products:', error);
+      // Fallback to empty array
+      setProducts([]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const categories = ['Electronics', 'Clothing', 'Furniture', 'Sports', 'Books', 'Home & Garden'];
   const conditions = ['New', 'Like New', 'Good', 'Fair', 'Poor'];
@@ -204,12 +225,15 @@ const ProductsPage = () => {
                 viewMode === 'list' ? 'flex p-4' : 'overflow-hidden'
               }`}
             >
-              {/* Product Image */}
+              {/* Product Image - HACKATHON MOD: Updated image handling */}
               <div className={viewMode === 'list' ? 'w-32 h-32 flex-shrink-0 mr-4' : 'aspect-square'}>
                 <img
-                  src={product.image}
+                  src={product.image_url || '/placeholder-image.svg'}
                   alt={product.title}
                   className="w-full h-full object-cover rounded-lg"
+                  onError={(e) => {
+                    e.target.src = '/placeholder-image.svg';
+                  }}
                 />
               </div>
 
@@ -235,24 +259,28 @@ const ProductsPage = () => {
 
                 <div className="flex items-center text-sm text-gray-500 mb-2">
                   <MapPin className="h-4 w-4 mr-1" />
-                  {product.location}
+                  {product.location || 'Location not specified'}
                 </div>
 
+                {/* HACKATHON MOD: Updated seller display to handle new data structure */}
                 <div className="flex items-center mb-3">
-                  <div className="flex items-center">
-                    <Star className="h-4 w-4 text-yellow-400 fill-current" />
-                    <span className="ml-1 text-sm text-gray-600">{product.rating}</span>
-                  </div>
-                  <span className="mx-2 text-gray-300">•</span>
-                  <span className="text-sm text-gray-600">{product.seller}</span>
+                  {product.seller && (
+                    <>
+                      <span className="text-sm text-gray-600">by {product.seller.name}</span>
+                      <span className="mx-2 text-gray-300">•</span>
+                    </>
+                  )}
+                  <span className="text-sm text-gray-500">
+                    {new Date(product.createdAt).toLocaleDateString()}
+                  </span>
                 </div>
 
                 <div className="flex items-center justify-between">
                   <div>
                     <span className="text-2xl font-bold text-gray-900">${product.price}</span>
-                    {product.originalPrice && (
+                    {product.original_price && (
                       <span className="ml-2 text-sm text-gray-500 line-through">
-                        ${product.originalPrice}
+                        ${product.original_price}
                       </span>
                     )}
                   </div>
