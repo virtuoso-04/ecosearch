@@ -42,5 +42,8 @@
   "repository": {
     "type": "git",
     "url": "https://github.com/virtuoso-04/ecosearch.git"
+  },
+  "dependencies": {
+    "lucide-react": "^0.542.0"
   }
 }
