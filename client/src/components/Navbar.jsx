@@ -83,17 +83,6 @@ const Header = () => {
             >
               Browse
             </Link>
-            <Link
-              to="/sell"
-              className={`flex items-center space-x-1 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                isActive('/sell')
-                  ? 'bg-green-100 text-green-700'
-                  : 'text-gray-700 hover:text-green-600'
-              }`}
-            >
-              <Plus className="h-4 w-4" />
-              <span>Sell</span>
-            </Link>
             {/* HACKATHON MOD: Added Create Product quick link */}
             <Link
               to="/create-product"
@@ -193,18 +182,6 @@ const Header = () => {
               onClick={() => setIsMenuOpen(false)}
             >
               Browse Products
-            </Link>
-            <Link
-              to="/sell"
-              className={`flex items-center space-x-2 px-3 py-2 rounded-md text-base font-medium ${
-                isActive('/sell')
-                  ? 'bg-green-100 text-green-700'
-                  : 'text-gray-700 hover:text-green-600 hover:bg-gray-50'
-              }`}
-              onClick={() => setIsMenuOpen(false)}
-            >
-              <Plus className="h-4 w-4" />
-              <span>Sell Item</span>
             </Link>
             {/* HACKATHON MOD: Added mobile Create Product link */}
             <Link
