@@ -1,202 +1,118 @@
-import React, { useState, useEffect, createContext, useContext } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { LoadingScreen, ErrorMessage } from './components/ui';
-import Navigation from './components/Navigation';
-import LoginScreen from './screens/LoginScreen';
-import ProductFeedScreen from './screens/ProductFeedScreen';
-import AddEditProductScreen from './screens/AddEditProductScreen';
-import MyListingsScreen from './screens/MyListingsScreen';
-import ProductDetailScreen from './screens/ProductDetailScreen';
-import DashboardScreen from './screens/DashboardScreen';
-import CartScreen from './screens/CartScreen';
-import PreviousPurchasesScreen from './screens/PreviousPurchasesScreen';
-import apiService from './services/apiService';
-
-// Auth Context
-const AuthContext = createContext(null);
-
-export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
-  return context;
-};
-
-// Protected Route Component
-function ProtectedRoute({ children }) {
-  const { user, loading } = useAuth();
-  
-  if (loading) {
-    return <LoadingScreen />;
-  }
-  
-  return user ? children : <Navigate to="/login" replace />;
-}
-
-// Public Route Component (redirect if authenticated)
-function PublicRoute({ children }) {
-  const { user, loading } = useAuth();
-  
-  if (loading) {
-    return <LoadingScreen />;
-  }
-  
-  return user ? <Navigate to="/products" replace /> : children;
-}
+import React from 'react';
 
 function App() {
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-
-  useEffect(() => {
-    initializeAuth();
-  }, []);
-
-  const initializeAuth = async () => {
-    try {
-      if (apiService.isAuthenticated()) {
-        const userData = await apiService.getProfile();
-        setUser(userData);
-      }
-    } catch (err) {
-      // Token might be invalid, clear it
-      apiService.logout();
-      console.warn('Failed to verify authentication:', err.message);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const login = (authData) => {
-    setUser(authData.user);
-    apiService.setToken(authData.token);
-    setError(null);
-  };
-
-  const logout = () => {
-    setUser(null);
-    apiService.logout();
-    setError(null);
-  };
-
-  const authValue = {
-    user,
-    loading,
-    error,
-    login,
-    logout,
-    isAuthenticated: !!user
-  };
-
-  if (loading) {
-    return <LoadingScreen message="Initializing EcoFinds..." />;
-  }
-
-  if (error) {
-    return (
-      <div className="min-h-screen flex items-center justify-center p-4">
-        <ErrorMessage 
-          message={error} 
-          onRetry={() => window.location.reload()} 
-        />
-      </div>
-    );
-  }
-
   return (
-    <AuthContext.Provider value={authValue}>
-      <Router>
-        <div className="min-h-screen bg-gray-50">
-          {user && <Navigation />}
-          
-          <main className={user ? 'pt-0' : ''}>
-            <Routes>
-              {/* Public Routes */}
-              <Route 
-                path="/login" 
-                element={
-                  <PublicRoute>
-                    <LoginScreen />
-                  </PublicRoute>
-                } 
-              />
-              
-              {/* Protected Routes */}
-              <Route 
-                path="/products" 
-                element={
-                  <ProtectedRoute>
-                    <ProductFeedScreen />
-                  </ProtectedRoute>
-                } 
-              />
-              <Route 
-                path="/add-product" 
-                element={
-                  <ProtectedRoute>
-                    <AddEditProductScreen />
-                  </ProtectedRoute>
-                } 
-              />
-              <Route 
-                path="/my-listings" 
-                element={
-                  <ProtectedRoute>
-                    <MyListingsScreen />
-                  </ProtectedRoute>
-                } 
-              />
-              <Route 
-                path="/product/:id" 
-                element={
-                  <ProtectedRoute>
-                    <ProductDetailScreen />
-                  </ProtectedRoute>
-                } 
-              />
-              <Route 
-                path="/dashboard" 
-                element={
-                  <ProtectedRoute>
-                    <DashboardScreen />
-                  </ProtectedRoute>
-                } 
-              />
-              <Route 
-                path="/cart" 
-                element={
-                  <ProtectedRoute>
-                    <CartScreen />
-                  </ProtectedRoute>
-                } 
-              />
-              <Route 
-                path="/purchases" 
-                element={
-                  <ProtectedRoute>
-                    <PreviousPurchasesScreen />
-                  </ProtectedRoute>
-                } 
-              />
-              
-              {/* Default redirect */}
-              <Route 
-                path="/" 
-                element={<Navigate to={user ? "/products" : "/login"} replace />} 
-              />
-              
-              {/* Catch all route */}
-              <Route 
-                path="*" 
-                element={<Navigate to={user ? "/products" : "/login"} replace />} 
-              />
-            </Routes>
-          </main>
+    <div className="min-h-screen bg-gray-50">
+      {/* Navigation Header */}
+      <nav className="bg-green-600 text-white shadow-lg">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center h-16">
+            <div className="flex items-center">
+              <h1 className="text-xl font-bold">🌱 EcoFinds</h1>
+              <p className="ml-3 text-sm text-green-100 hidden sm:block">
+                Sustainable Second-Hand Marketplace
+              </p>
+            </div>
+            <div className="flex space-x-4">
+              <button className="bg-green-700 hover:bg-green-800 px-4 py-2 rounded transition-colors">
+                Login
+              </button>
+              <button className="bg-green-500 hover:bg-green-600 px-4 py-2 rounded transition-colors">
+                Sign Up
+              </button>
+            </div>
+          </div>
         </div>
-      </Router>
-    </AuthContext.Provider>
+      </nav>
+
+      {/* Hero Section */}
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div className="text-center">
+          <h2 className="text-4xl font-bold text-gray-900 mb-4">
+            Discover Unique Second-Hand Treasures
+          </h2>
+          <p className="text-xl text-gray-600 mb-8">
+            Give products a second life. Buy and sell pre-owned goods sustainably.
+          </p>
+          
+          {/* Search Bar */}
+          <div className="max-w-md mx-auto mb-8">
+            <div className="flex">
+              <input
+                type="text"
+                placeholder="Search for second-hand items..."
+                className="flex-1 px-4 py-3 border border-gray-300 rounded-l-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+              />
+              <button className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-r-lg transition-colors">
+                🔍 Search
+              </button>
+            </div>
+          </div>
+
+          {/* Category Filter Buttons */}
+          <div className="flex flex-wrap justify-center gap-2 mb-8">
+            {['Electronics', 'Clothing', 'Furniture', 'Sports', 'Books', 'Home & Garden'].map((category) => (
+              <button 
+                key={category}
+                className="bg-white hover:bg-green-50 text-green-700 border border-green-200 px-4 py-2 rounded-full transition-colors"
+              >
+                {category}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Features Section */}
+        <div className="mt-16 grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="text-center p-6 bg-white rounded-lg shadow-md">
+            <div className="text-4xl mb-4">♻️</div>
+            <h3 className="text-xl font-semibold mb-2">Circular Economy</h3>
+            <p className="text-gray-600">
+              Extend product lifecycles and reduce waste through sustainable shopping
+            </p>
+          </div>
+          
+          <div className="text-center p-6 bg-white rounded-lg shadow-md">
+            <div className="text-4xl mb-4">💚</div>
+            <h3 className="text-xl font-semibold mb-2">Trusted Community</h3>
+            <p className="text-gray-600">
+              Connect with conscious buyers and sellers in your local area
+            </p>
+          </div>
+          
+          <div className="text-center p-6 bg-white rounded-lg shadow-md">
+            <div className="text-4xl mb-4">�</div>
+            <h3 className="text-xl font-semibold mb-2">Great Value</h3>
+            <p className="text-gray-600">
+              Find quality items at affordable prices while helping the planet
+            </p>
+          </div>
+        </div>
+
+        {/* Quick Action Buttons */}
+        <div className="mt-12 flex flex-col sm:flex-row gap-4 justify-center">
+          <button className="bg-green-600 hover:bg-green-700 text-white px-8 py-4 rounded-lg font-semibold text-lg transition-colors">
+            + List Your Item
+          </button>
+          <button className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 rounded-lg font-semibold text-lg transition-colors">
+            🛒 Browse Marketplace
+          </button>
+          <button className="bg-purple-600 hover:bg-purple-700 text-white px-8 py-4 rounded-lg font-semibold text-lg transition-colors">
+            👤 My Dashboard
+          </button>
+        </div>
+
+        {/* Status Section */}
+        <div className="mt-16 text-center">
+          <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded">
+            <strong>🚀 EcoFinds Status:</strong> Frontend ready! Backend API running on port 3001
+          </div>
+          <div className="mt-4 text-sm text-gray-500">
+            <p>Features: User Authentication • Product Listings • Cart • Order Management • Search & Filtering</p>
+          </div>
+        </div>
+      </main>
+    </div>
   );
 }
 

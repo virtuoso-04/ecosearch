@@ -1,6 +1,6 @@
 /**
  * Cart Model
- * Enhanced shopping cart with business logic
+ * Sequelize model for shopping cart functionality
  */
 
 const { DataTypes } = require('sequelize');
@@ -38,81 +38,26 @@ const Cart = sequelize.define('Cart', {
     allowNull: false,
     defaultValue: 1,
     validate: {
-      min: {
-        args: 1,
-        msg: 'Quantity must be at least 1'
-      },
-      max: {
-        args: 99,
-        msg: 'Quantity cannot exceed 99'
-      }
-    }
-  },
-  price_at_time: {
-    type: DataTypes.DECIMAL(10, 2),
-    allowNull: false,
-    comment: 'Price when item was added to cart'
-  },
-  notes: {
-    type: DataTypes.TEXT(500),
-    allowNull: true,
-    validate: {
-      len: {
-        args: [0, 500],
-        msg: 'Notes cannot exceed 500 characters'
-      }
+      min: 1
     }
   }
 }, {
-  tableName: 'cart_items',
+  tableName: 'cart',
   timestamps: true,
+  createdAt: 'created_at',
+  updatedAt: 'updated_at',
   indexes: [
     {
       unique: true,
-      fields: ['user_id', 'product_id'],
-      name: 'unique_user_product_cart'
+      fields: ['user_id', 'product_id']
     },
     {
       fields: ['user_id']
     },
     {
       fields: ['product_id']
-    },
-    {
-      fields: ['created_at']
     }
   ]
 });
-
-// Instance methods
-Cart.prototype.getTotalPrice = function() {
-  return parseFloat(this.price_at_time) * this.quantity;
-};
-
-Cart.prototype.updateQuantity = async function(newQuantity) {
-  this.quantity = newQuantity;
-  await this.save();
-  return this;
-};
-
-// Class methods
-Cart.findByUser = function(userId, options = {}) {
-  return this.findAll({
-    where: { user_id: userId },
-    order: [['created_at', 'DESC']],
-    ...options
-  });
-};
-
-Cart.getUserCartTotal = async function(userId) {
-  const cartItems = await this.findByUser(userId);
-  return cartItems.reduce((total, item) => total + item.getTotalPrice(), 0);
-};
-
-Cart.clearUserCart = async function(userId) {
-  return this.destroy({
-    where: { user_id: userId }
-  });
-};
 
 module.exports = Cart;

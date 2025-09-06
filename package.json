@@ -1,7 +1,7 @@
 {
-  "name": "ecosearch",
+  "name": "ecofinds",
   "version": "2.0.0",
-  "description": "EcoFinds - Sustainable Marketplace Platform",
+  "description": "EcoFinds - Sustainable Second-Hand Marketplace",
   "main": "server/app.js",
   "scripts": {
     "start": "npm run start:server",
@@ -22,6 +22,8 @@
   "keywords": [
     "marketplace",
     "sustainability",
+    "second-hand",
+    "circular-economy",
     "eco-friendly",
     "express",
     "react",

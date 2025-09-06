@@ -5,11 +5,11 @@ export default defineConfig({
   plugins: [react()],
   server: {
     proxy: {
-      '/auth': 'http://localhost:5000',
-      '/user': 'http://localhost:5000',
-      '/products': 'http://localhost:5000',
-      '/cart': 'http://localhost:5000',
-      '/purchases': 'http://localhost:5000'
+      '/auth': 'http://localhost:3001',
+      '/user': 'http://localhost:3001',
+      '/products': 'http://localhost:3001',
+      '/cart': 'http://localhost:3001',
+      '/purchases': 'http://localhost:3001'
     }
   }
 })

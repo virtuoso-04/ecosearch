@@ -1,230 +1,136 @@
 /**
- * EcoFinds Server Application
- * Robust Express.js server with MySQL, comprehensive error handling, and security
+ * EcoFinds - Sustainable Second-Hand Marketplace
+ * Main Express Application Server
  */
-
-require('express-async-errors');
-require('dotenv').config();
 
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
-const morgan = require('morgan');
+const rateLimit = require('express-rate-limit');
 const compression = require('compression');
+const path = require('path');
 
-// Import configurations and middleware
-const { sequelize, testConnection } = require('./config/database');
-const errorHandler = require('./middleware/errorHandler');
-const { setupSecurity } = require('./middleware/security');
-const { ApiError } = require('./utils/errors');
-
-// Import models to ensure they're loaded
-require('./models');
+// Import configuration and database
+const { PORT, NODE_ENV, CORS_ORIGIN, RATE_LIMIT_WINDOW_MS, RATE_LIMIT_MAX_REQUESTS } = require('./config/config');
+const { initializeDatabase } = require('./config/database');
+const { errorHandler, notFound } = require('./middleware/errorHandler');
 
 // Import routes
 const authRoutes = require('./routes/auth');
 const productRoutes = require('./routes/products');
-// const cartRoutes = require('./routes/cart');
-// const purchaseRoutes = require('./routes/purchase');
+const userRoutes = require('./routes/users');
+const cartRoutes = require('./routes/cart');
+const orderRoutes = require('./routes/orders');
 
 // Create Express app
 const app = express();
 
-// Trust proxy for accurate client IPs
-app.set('trust proxy', 1);
-
-// Basic middleware
+// Security middleware
 app.use(helmet({
-  crossOriginEmbedderPolicy: false,
-  contentSecurityPolicy: {
-    directives: {
-      defaultSrc: ["'self'"],
-      styleSrc: ["'self'", "'unsafe-inline'"],
-      scriptSrc: ["'self'"],
-      imgSrc: ["'self'", "data:", "https:"],
-      connectSrc: ["'self'"],
-      fontSrc: ["'self'"],
-      objectSrc: ["'none'"],
-      mediaSrc: ["'self'"],
-      frameSrc: ["'none'"],
-    },
-  },
+  crossOriginResourcePolicy: { policy: "cross-origin" }
 }));
 
-app.use(compression());
+// CORS configuration
+app.use(cors({
+  origin: NODE_ENV === 'production' ? CORS_ORIGIN : true,
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
+
+// Rate limiting
+const limiter = rateLimit({
+  windowMs: RATE_LIMIT_WINDOW_MS,
+  max: RATE_LIMIT_MAX_REQUESTS,
+  message: {
+    success: false,
+    message: 'Too many requests from this IP, please try again later.'
+  }
+});
+app.use('/api/', limiter);
+
+// Body parsing middleware
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-// CORS configuration
-const corsOptions = {
-  origin: function (origin, callback) {
-    const allowedOrigins = [
-      'http://localhost:3000',
-      'http://localhost:5173',
-      'http://127.0.0.1:3000',
-      'http://127.0.0.1:5173',
-      process.env.FRONTEND_URL
-    ].filter(Boolean);
-    
-    // Allow requests with no origin (mobile apps, etc.)
-    if (!origin) return callback(null, true);
-    
-    if (allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
-  credentials: true,
-  optionsSuccessStatus: 200,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
-};
+// Compression middleware
+app.use(compression());
 
-app.use(cors(corsOptions));
-
-// Logging
-if (process.env.NODE_ENV === 'development') {
-  app.use(morgan('dev'));
-} else {
-  app.use(morgan('combined'));
-}
-
-// Security middleware (if available)
-if (require('./middleware/security').setupSecurity) {
-  require('./middleware/security').setupSecurity(app);
-}
+// Static files for uploads
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Health check endpoint
 app.get('/health', (req, res) => {
-  res.status(200).json({
-    status: 'healthy',
+  res.json({
+    success: true,
+    message: 'EcoFinds API is running',
     timestamp: new Date().toISOString(),
-    uptime: process.uptime(),
-    environment: process.env.NODE_ENV || 'development',
-    version: '2.0.0'
-  });
-});
-
-// API documentation endpoint
-app.get('/api', (req, res) => {
-  res.status(200).json({
-    name: 'EcoFinds API',
-    version: '2.0.0',
-    description: 'Robust marketplace API with MySQL and comprehensive features',
-    endpoints: {
-      auth: '/auth',
-      products: '/products',
-      cart: '/cart',
-      purchases: '/purchases'
-    },
-    status: 'active'
+    environment: NODE_ENV
   });
 });
 
 // API Routes
-app.use('/auth', authRoutes);
-// app.use('/products', productRoutes);
-// app.use('/cart', cartRoutes);
-// app.use('/purchases', purchaseRoutes);
+app.use('/api/auth', authRoutes);
+app.use('/api/products', productRoutes);
+app.use('/api/users', userRoutes);
+app.use('/api/cart', cartRoutes);
+app.use('/api/orders', orderRoutes);
 
-// Root endpoint
-app.get('/', (req, res) => {
-  res.status(200).json({
+// API documentation endpoint
+app.get('/api', (req, res) => {
+  res.json({
+    success: true,
     message: 'Welcome to EcoFinds API',
-    version: '2.0.0',
-    status: 'running',
-    timestamp: new Date().toISOString(),
+    version: '1.0.0',
     endpoints: {
-      api: '/api',
-      health: '/health'
-    }
+      auth: '/api/auth',
+      products: '/api/products',
+      users: '/api/users',
+      cart: '/api/cart',
+      orders: '/api/orders'
+    },
+    documentation: 'See README.md for detailed API documentation'
   });
 });
 
 // Handle 404 for API routes
-app.all('*', (req, res, next) => {
-  const error = new Error(`Route ${req.originalUrl} not found`);
-  error.status = 404;
-  next(error);
-});
+app.use('/api/*', notFound);
 
 // Global error handler
 app.use(errorHandler);
 
-// Graceful shutdown handling
-const gracefulShutdown = async (signal) => {
-  console.log(`\n🛑 Received ${signal}, starting graceful shutdown...`);
-  
-  try {
-    // Close database connection
-    await sequelize.close();
-    console.log('✅ Database connection closed');
-    
-    console.log('✅ Graceful shutdown completed');
-    process.exit(0);
-  } catch (error) {
-    console.error('❌ Error during shutdown:', error);
-    process.exit(1);
-  }
-};
-
-// Handle shutdown signals
-process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
-process.on('SIGINT', () => gracefulShutdown('SIGINT'));
-
-// Handle uncaught exceptions
-process.on('uncaughtException', (error) => {
-  console.error('❌ Uncaught Exception:', error);
-  gracefulShutdown('uncaughtException');
-});
-
-// Handle unhandled promise rejections
-process.on('unhandledRejection', (reason, promise) => {
-  console.error('❌ Unhandled Promise Rejection at:', promise, 'reason:', reason);
-  gracefulShutdown('unhandledRejection');
-});
-
-// Start server
-const PORT = process.env.PORT || 3000;
-
+// Initialize database and start server
 const startServer = async () => {
   try {
-    // Try to test database connection (non-blocking for demo)
-    try {
-      await testConnection();
-      
-      // Sync database (create tables if they don't exist)
-      if (process.env.NODE_ENV === 'development') {
-        await sequelize.sync({ alter: true });
-        console.log('🗄️ Database synchronized');
-      }
-    } catch (error) {
-      console.log('⚠️ Database not available - running in demo mode');
-    }
+    // Initialize database connection
+    await initializeDatabase();
     
-    // Start the server
+    // Start server
     const server = app.listen(PORT, () => {
       console.log(`
-🚀 EcoSearch Server is running!
-📡 Port: ${PORT}
-🌍 Environment: ${process.env.NODE_ENV || 'development'}
-🗄️ Database: ${process.env.DB_NAME || 'Demo Mode'}
-📚 API Documentation: http://localhost:${PORT}
+🌱 EcoFinds Server is running!
+🚀 Environment: ${NODE_ENV}
+🌐 Server: http://localhost:${PORT}
+📚 API Docs: http://localhost:${PORT}/api
 💚 Health Check: http://localhost:${PORT}/health
-
-Ready to accept connections!
       `);
     });
 
-    // Handle server errors
-    server.on('error', (error) => {
-      if (error.code === 'EADDRINUSE') {
-        console.error(`❌ Port ${PORT} is already in use`);
-      } else {
-        console.error('❌ Server error:', error);
-      }
-      process.exit(1);
+    // Graceful shutdown handling
+    process.on('SIGTERM', () => {
+      console.log('SIGTERM received. Shutting down gracefully...');
+      server.close(() => {
+        console.log('Server closed.');
+        process.exit(0);
+      });
+    });
+
+    process.on('SIGINT', () => {
+      console.log('SIGINT received. Shutting down gracefully...');
+      server.close(() => {
+        console.log('Server closed.');
+        process.exit(0);
+      });
     });
 
   } catch (error) {
@@ -233,7 +139,7 @@ Ready to accept connections!
   }
 };
 
-// Initialize server if run directly
+// Start the server
 if (require.main === module) {
   startServer();
 }

@@ -1,9 +1,10 @@
 /**
  * Product Model
- * Enhanced product model with comprehensive features
+ * Enhanced with validation, search, and business logic
  */
 
 const { DataTypes } = require('sequelize');
+const slugify = require('slugify');
 const { sequelize } = require('../config/database');
 
 const Product = sequelize.define('Product', {
@@ -13,29 +14,37 @@ const Product = sequelize.define('Product', {
     primaryKey: true,
     allowNull: false
   },
-  name: {
+  title: {
     type: DataTypes.STRING(255),
     allowNull: false,
     validate: {
-      notEmpty: {
-        msg: 'Product name cannot be empty'
-      },
       len: {
         args: [3, 255],
-        msg: 'Product name must be between 3 and 255 characters'
+        msg: 'Title must be between 3 and 255 characters'
+      },
+      notEmpty: {
+        msg: 'Title cannot be empty'
       }
+    },
+    set(value) {
+      this.setDataValue('title', value.trim());
+    }
+  },
+  slug: {
+    type: DataTypes.STRING(300),
+    allowNull: false,
+    unique: {
+      name: 'slug_unique',
+      msg: 'Product slug already exists'
     }
   },
   description: {
     type: DataTypes.TEXT,
-    allowNull: false,
+    allowNull: true,
     validate: {
-      notEmpty: {
-        msg: 'Product description cannot be empty'
-      },
       len: {
-        args: [10, 2000],
-        msg: 'Description must be between 10 and 2000 characters'
+        args: [0, 2000],
+        msg: 'Description cannot exceed 2000 characters'
       }
     }
   },
@@ -43,9 +52,6 @@ const Product = sequelize.define('Product', {
     type: DataTypes.DECIMAL(10, 2),
     allowNull: false,
     validate: {
-      isDecimal: {
-        msg: 'Price must be a valid decimal number'
-      },
       min: {
         args: 0.01,
         msg: 'Price must be greater than 0'
@@ -56,18 +62,28 @@ const Product = sequelize.define('Product', {
       }
     }
   },
+  original_price: {
+    type: DataTypes.DECIMAL(10, 2),
+    allowNull: true,
+    validate: {
+      min: {
+        args: 0.01,
+        msg: 'Original price must be greater than 0'
+      }
+    }
+  },
   category: {
     type: DataTypes.ENUM(
-      'Electronics',
-      'Clothing',
-      'Home & Garden',
-      'Health & Beauty',
-      'Sports & Outdoors',
-      'Books & Media',
-      'Toys & Games',
-      'Automotive',
-      'Food & Beverages',
-      'Other'
+      'electronics', 
+      'clothing', 
+      'furniture', 
+      'sports', 
+      'books', 
+      'home_garden',
+      'automotive',
+      'health_beauty',
+      'toys_games',
+      'other'
     ),
     allowNull: false,
     validate: {
@@ -77,18 +93,63 @@ const Product = sequelize.define('Product', {
     }
   },
   condition: {
-    type: DataTypes.ENUM('New', 'Like New', 'Good', 'Fair', 'Poor'),
-    defaultValue: 'Good',
+    type: DataTypes.ENUM('new', 'like_new', 'good', 'fair', 'poor'),
+    defaultValue: 'good',
     allowNull: false
   },
-  image: {
-    type: DataTypes.STRING(500),
+  status: {
+    type: DataTypes.ENUM('active', 'sold', 'reserved', 'inactive'),
+    defaultValue: 'active',
+    allowNull: false
+  },
+  image_url: {
+    type: DataTypes.TEXT,
     allowNull: true,
     validate: {
       isUrl: {
-        msg: 'Image must be a valid URL'
+        msg: 'Image URL must be a valid URL'
       }
     }
+  },
+  images: {
+    type: DataTypes.JSON,
+    allowNull: true,
+    defaultValue: []
+  },
+  location: {
+    type: DataTypes.STRING(255),
+    allowNull: true
+  },
+  latitude: {
+    type: DataTypes.DECIMAL(10, 8),
+    allowNull: true,
+    validate: {
+      min: -90,
+      max: 90
+    }
+  },
+  longitude: {
+    type: DataTypes.DECIMAL(11, 8),
+    allowNull: true,
+    validate: {
+      min: -180,
+      max: 180
+    }
+  },
+  tags: {
+    type: DataTypes.JSON,
+    allowNull: true,
+    defaultValue: []
+  },
+  view_count: {
+    type: DataTypes.INTEGER,
+    defaultValue: 0,
+    allowNull: false
+  },
+  favorite_count: {
+    type: DataTypes.INTEGER,
+    defaultValue: 0,
+    allowNull: false
   },
   seller_id: {
     type: DataTypes.UUID,
@@ -100,43 +161,19 @@ const Product = sequelize.define('Product', {
     onUpdate: 'CASCADE',
     onDelete: 'CASCADE'
   },
-  stock_quantity: {
-    type: DataTypes.INTEGER,
-    defaultValue: 1,
-    allowNull: false,
-    validate: {
-      min: {
-        args: 0,
-        msg: 'Stock quantity cannot be negative'
-      }
-    }
-  },
-  location: {
-    type: DataTypes.STRING(255),
-    allowNull: true
-  },
-  tags: {
-    type: DataTypes.JSON,
-    allowNull: true,
-    defaultValue: []
-  },
-  is_active: {
+  featured: {
     type: DataTypes.BOOLEAN,
-    defaultValue: true,
+    defaultValue: false,
     allowNull: false
   },
-  views_count: {
-    type: DataTypes.INTEGER,
-    defaultValue: 0,
-    allowNull: false
-  },
-  featured_until: {
+  expires_at: {
     type: DataTypes.DATE,
     allowNull: true
   }
 }, {
   tableName: 'products',
   timestamps: true,
+  paranoid: true, // Soft deletes
   indexes: [
     {
       fields: ['seller_id']
@@ -145,30 +182,38 @@ const Product = sequelize.define('Product', {
       fields: ['category']
     },
     {
+      fields: ['status']
+    },
+    {
       fields: ['price']
     },
     {
-      fields: ['is_active']
+      unique: true,
+      fields: ['slug']
     },
     {
-      fields: ['created_at']
+      fields: ['featured']
     },
     {
-      fields: ['name'],
-      type: 'FULLTEXT'
-    },
-    {
-      fields: ['description'],
-      type: 'FULLTEXT'
+      name: 'location_index',
+      fields: ['latitude', 'longitude']
     }
   ],
   hooks: {
-    beforeValidate: (product) => {
-      if (product.name) {
-        product.name = product.name.trim();
-      }
-      if (product.description) {
-        product.description = product.description.trim();
+    beforeCreate: (product) => {
+      product.slug = slugify(product.title, { 
+        lower: true, 
+        strict: true,
+        remove: /[*+~.()'"!:@]/g
+      }) + '-' + Date.now();
+    },
+    beforeUpdate: (product) => {
+      if (product.changed('title')) {
+        product.slug = slugify(product.title, { 
+          lower: true, 
+          strict: true,
+          remove: /[*+~.()'"!:@]/g
+        }) + '-' + Date.now();
       }
     }
   }
@@ -176,46 +221,57 @@ const Product = sequelize.define('Product', {
 
 // Instance methods
 Product.prototype.incrementViews = async function() {
-  this.views_count += 1;
+  this.view_count += 1;
+  await this.save({ fields: ['view_count'] });
+};
+
+Product.prototype.markAsSold = async function() {
+  this.status = 'sold';
   await this.save();
-  return this;
 };
 
 Product.prototype.isAvailable = function() {
-  return this.is_active && this.stock_quantity > 0;
+  return this.status === 'active' && 
+         (!this.expires_at || this.expires_at > new Date());
 };
 
-Product.prototype.isFeatured = function() {
-  return this.featured_until && new Date() < this.featured_until;
+Product.prototype.getDiscountPercentage = function() {
+  if (!this.original_price || this.original_price <= this.price) {
+    return 0;
+  }
+  return Math.round(((this.original_price - this.price) / this.original_price) * 100);
 };
 
 // Class methods
 Product.findAvailable = function(options = {}) {
   return this.findAll({
-    where: {
-      is_active: true,
-      stock_quantity: { [require('sequelize').Op.gt]: 0 }
+    where: { 
+      status: 'active',
+      [sequelize.Op.or]: [
+        { expires_at: null },
+        { expires_at: { [sequelize.Op.gt]: new Date() } }
+      ]
     },
-    order: [['created_at', 'DESC']],
     ...options
   });
 };
 
 Product.findByCategory = function(category, options = {}) {
-  return this.findAll({
-    where: {
-      category,
-      is_active: true
-    },
-    order: [['created_at', 'DESC']],
+  return this.findAvailable({
+    where: { category },
     ...options
   });
 };
 
-Product.findBySeller = function(sellerId, options = {}) {
-  return this.findAll({
-    where: { seller_id: sellerId },
-    order: [['created_at', 'DESC']],
+Product.search = function(query, options = {}) {
+  return this.findAvailable({
+    where: {
+      [sequelize.Op.or]: [
+        { title: { [sequelize.Op.like]: `%${query}%` } },
+        { description: { [sequelize.Op.like]: `%${query}%` } },
+        { tags: { [sequelize.Op.like]: `%${query}%` } }
+      ]
+    },
     ...options
   });
 };
