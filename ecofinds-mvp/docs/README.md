@@ -1,26 +1,43 @@
 
+
 # EcoFinds Marketplace MVP
+
+![Hackathon Ready](https://img.shields.io/badge/hackathon-ready-brightgreen)
+![Node.js](https://img.shields.io/badge/backend-Node.js-informational?logo=node.js)
+![React](https://img.shields.io/badge/frontend-React-blue?logo=react)
+![License: MIT](https://img.shields.io/badge/license-MIT-yellow)
 
 > A trusted web application for buying and selling used goods, emphasizing sustainability and a clean, iOS-inspired user experience.
 
 ---
 
-## Table of Contents
-- [Project Overview](#project-overview)
-- [Directory Structure](#directory-structure)
-- [Tech Stack](#tech-stack)
-- [Setup & Installation](#setup--installation)
-- [Backend API](#backend-api)
-- [Frontend Screens](#frontend-screens)
-- [Development & Testing](#development--testing)
-- [Wireframes](#wireframes)
+## 🚀 Quick Start
+
+```sh
+# 1. Clone the repo
+git clone https://github.com/virtuoso-04/ecosearch.git
+cd ecosearch/ecofinds-mvp
+
+# 2. Install dependencies
+npm install
+cd client && npm install
+cd ../server && npm install
+
+# 3. Configure environment
+cp server/.env.example server/.env # or create .env manually
+
+# 4. Start backend
+cd server && node app.js
+# (Runs on http://localhost:5000)
+
+# 5. Start frontend
+cd ../client && npm run dev
+# (Runs on http://localhost:5173)
+```
 
 ---
 
-## Project Overview
-EcoFinds is a web marketplace for buying and selling used goods, with a focus on sustainability and a delightful, mobile-friendly UI. The MVP includes authentication, product listings, user profiles, cart, purchases, and more.
-
-## Directory Structure
+## 🗂️ Project Structure
 
 ```
 ecofinds-mvp/
@@ -45,58 +62,31 @@ ecofinds-mvp/
 	package.json
 ```
 
-## Tech Stack
+---
+
+## 🛠️ Tech Stack
+
 - **Frontend:** React, TailwindCSS, React Router
 - **Backend:** Node.js, Express, Sequelize (SQLite for MVP)
 - **Auth:** JWT (JSON Web Token)
 - **Database:** SQL (SQLite, easy to switch to Postgres/MySQL)
 
-## Setup & Installation
+---
 
-### Prerequisites
-- Node.js (v18+ recommended)
-- npm or yarn
+## ✨ Features
 
-### 1. Clone the repository
-```sh
-git clone https://github.com/virtuoso-04/ecosearch.git
-cd ecosearch/ecofinds-mvp
-```
-
-### 2. Install dependencies
-```sh
-# Install root and workspace dependencies
-npm install
-
-# Install client dependencies
-cd client && npm install
-cd ../server && npm install
-```
-
-### 3. Environment Variables
-Create a `.env` file in `/server`:
-```
-JWT_SECRET=your_jwt_secret
-DATABASE_URL=sqlite:///:memory:
-```
-
-### 4. Run the backend
-```sh
-cd server
-node app.js
-# Server runs on http://localhost:5000
-```
-
-### 5. Run the frontend
-```sh
-cd ../client
-npm run dev
-# App runs on http://localhost:5173 (or similar)
-```
+- User authentication (JWT)
+- Profile management
+- Product listings (CRUD)
+- Product search & filter
+- Cart & checkout
+- Previous purchases
+- Responsive, iOS-inspired UI
+- Demo data for quick testing
 
 ---
 
-## Backend API
+## 📦 Backend API
 
 ### Auth
 - `POST /auth/register` — Register new user
@@ -113,15 +103,19 @@ npm run dev
 - `PUT /products/:id` — Edit product (auth required, owner only)
 - `DELETE /products/:id` — Delete product (auth required, owner only)
 
-### (Planned) Cart & Purchases
+### Cart
 - `GET /cart` — View cart
 - `POST /cart` — Add to cart
 - `DELETE /cart/:id` — Remove from cart
+
+### Purchases
 - `GET /purchases` — List previous purchases
+- `POST /purchases/checkout` — Checkout cart
 
 ---
 
-## Frontend Screens
+## 🖥️ Frontend Screens
+
 - **Login/Sign Up:** Email/password, error handling
 - **Product Feed:** Search, filter, product cards
 - **Add/Edit Product:** Form, validation
@@ -135,7 +129,8 @@ All screens are responsive and styled for a clean, iOS-inspired look.
 
 ---
 
-## Development & Testing
+## 🧪 Development & Testing
+
 - Use Postman or the frontend to test API endpoints
 - All forms have instant validation and error feedback
 - Use `npm run dev` in `/client` for hot-reload development
@@ -143,10 +138,20 @@ All screens are responsive and styled for a clean, iOS-inspired look.
 
 ---
 
-## Wireframes
+## 📝 Wireframes
+
 Wireframes and design references are in `/docs/wireframes/`.
 
 ---
 
+## 🙌 Hackathon Demo Tips
+
+- Use the provided demo user or seed script for instant login and listings
+- Screen record with narration for a smooth demo
+- Highlight sustainability, trust, and iOS-inspired UX
+
+---
+
 ## License
+
 MIT
