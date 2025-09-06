@@ -1,7 +1,4 @@
-// HACKATHON MOD: Complete Product Create functionality implementation
-// - Full form with image upload, validation, and preview
-// - Client-side validation with inline errors and disabled submit
-// - Image handling with fallback to placeholder
+
 // - Auto-slug generation and preview features
 
 import React, { useState, useRef } from 'react';
