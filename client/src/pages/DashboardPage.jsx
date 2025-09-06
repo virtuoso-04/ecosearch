@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { User, Package, ShoppingBag, TrendingUp, Edit3, Eye, Settings } from 'lucide-react';
-import { Link } from 'react-router-dom';
 
 const DashboardPage = () => {
   const [activeTab, setActiveTab] = useState('overview');
@@ -265,9 +264,9 @@ const DashboardPage = () => {
                       </div>
                       <div className="text-right">
                         <p className="text-lg font-semibold text-gray-900">${item.price}</p>
-                        <Link to={`/purchases`} className="text-green-600 hover:text-green-700 text-sm font-medium">
+                        <button className="text-green-600 hover:text-green-700 text-sm font-medium">
                           View Details
-                        </Link>
+                        </button>
                       </div>
                     </div>
                   ))}

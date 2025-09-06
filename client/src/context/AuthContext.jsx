@@ -102,6 +102,7 @@ export const useAuth = () => {
 
 // API helper function
 const apiCall = async (url, options = {}) => {
+  const API_BASE_URL = '/api'; // Use the same base URL as in api.js
   const token = localStorage.getItem('token');
   const headers = {
     'Content-Type': 'application/json',
@@ -109,7 +110,9 @@ const apiCall = async (url, options = {}) => {
     ...options.headers
   };
 
-  const response = await fetch(url, {
+  const fullUrl = url.startsWith('http') ? url : `${API_BASE_URL}${url}`;
+
+  const response = await fetch(fullUrl, {
     ...options,
     headers
   });
