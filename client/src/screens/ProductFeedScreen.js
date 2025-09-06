@@ -22,15 +22,11 @@ function ProductFeedScreen() {
   const handleAddToCart = async (productId) => {
     try {
       await apiService.addToCart(productId);
+      // Could add toast notification here
       alert('Added to cart successfully!');
     } catch (error) {
       alert('Failed to add to cart. Please try again.');
     }
-  };
-
-  const handleSearch = (e) => {
-    const value = e.target.value;
-    setSearchTerm(value);
   };
 
   if (loading) {
@@ -40,13 +36,13 @@ function ProductFeedScreen() {
   if (error) {
     return (
       <div className="max-w-7xl mx-auto p-4">
-        <ErrorMessage message={error} onRetry={refetch} />;
+        <ErrorMessage message={error} onRetry={refetch} />
       </div>
     );
   }
 
   return (
-    <div className="max-w-7xl mx-auto p-4">
+    <div className="max-w-7xl mx-auto p-4 space-y-6">
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
@@ -70,17 +66,19 @@ function ProductFeedScreen() {
               type="text"
               placeholder="Search products by name or description..."
               value={searchTerm}
-              onChange={handleSearch}
+              onChange={e => setSearchTerm(e.target.value)}
               className="w-full"
             />
           </div>
           <div>
             <Select
               value={categoryFilter}
-              onChange={(e) => setCategoryFilter(e.target.value)}
+              onChange={e => setCategoryFilter(e.target.value)}
             >
-              {CATEGORIES.map((category) => (
-                <option key={category} value={category}>{category}</option>
+              {CATEGORIES.map(category => (
+                <option key={category} value={category === 'All' ? '' : category}>
+                  {category}
+                </option>
               ))}
             </Select>
           </div>
@@ -109,12 +107,12 @@ function ProductFeedScreen() {
           }
         />
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-          {filteredProducts.map((product) => (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          {filteredProducts.map(product => (
             <ProductCard
               key={product.id}
               product={product}
-              onAddToCart={() => handleAddToCart(product.id)}
+              onAddToCart={handleAddToCart}
               isOwner={product.ownerId === user?.id}
               showActions={true}
             />
