@@ -1,3 +1,7 @@
+// HACKATHON MOD: Updated navbar to include Create Product link
+// - Added navigation to /create-product route
+// - Enhanced mobile menu with quick create access
+
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Search, ShoppingCart, User, Menu, X, Plus } from 'lucide-react';
@@ -67,6 +71,18 @@ const Header = () => {
             >
               <Plus className="h-4 w-4" />
               <span>Sell</span>
+            </Link>
+            {/* HACKATHON MOD: Added Create Product quick link */}
+            <Link
+              to="/create-product"
+              className={`flex items-center space-x-1 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                isActive('/create-product')
+                  ? 'bg-green-100 text-green-700'
+                  : 'text-gray-700 hover:text-green-600'
+              }`}
+            >
+              <Plus className="h-4 w-4" />
+              <span>Create</span>
             </Link>
             <Link
               to="/cart"
@@ -150,6 +166,19 @@ const Header = () => {
             >
               <Plus className="h-4 w-4" />
               <span>Sell Item</span>
+            </Link>
+            {/* HACKATHON MOD: Added mobile Create Product link */}
+            <Link
+              to="/create-product"
+              className={`flex items-center space-x-2 px-3 py-2 rounded-md text-base font-medium ${
+                isActive('/create-product')
+                  ? 'bg-green-100 text-green-700'
+                  : 'text-gray-700 hover:text-green-600 hover:bg-gray-50'
+              }`}
+              onClick={() => setIsMenuOpen(false)}
+            >
+              <Plus className="h-4 w-4" />
+              <span>Create Listing</span>
             </Link>
             <Link
               to="/cart"

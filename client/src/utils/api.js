@@ -1,3 +1,8 @@
+// HACKATHON MOD: API utility functions updated for Product Create functionality
+// - Added FormData support for image uploads with progress tracking
+// - Enhanced product creation with multipart/form-data handling
+// - Added fallback to JSON for non-image submissions
+
 /**
  * API Utility Functions
  * Centralized API calls with authentication and error handling
@@ -15,20 +20,24 @@ const getAuthToken = () => {
 
 /**
  * Base fetch wrapper with error handling
+ * // HACKATHON MOD: Added FormData detection for proper content-type handling
  */
 const fetchWithAuth = async (endpoint, options = {}) => {
   const token = getAuthToken();
   
   const config = {
     headers: {
-      'Content-Type': 'application/json',
       ...(token && { Authorization: `Bearer ${token}` }),
     },
     ...options,
   };
 
-  if (config.body && typeof config.body === 'object') {
-    config.body = JSON.stringify(config.body);
+  // HACKATHON MOD: Don't set Content-Type for FormData, let browser handle it
+  if (config.body && !(config.body instanceof FormData)) {
+    config.headers['Content-Type'] = 'application/json';
+    if (typeof config.body === 'object') {
+      config.body = JSON.stringify(config.body);
+    }
   }
 
   const response = await fetch(`${API_BASE_URL}${endpoint}`, config);
@@ -99,11 +108,60 @@ export const productsApi = {
   getProduct: (id) => 
     fetchWithAuth(`/products/${id}`),
 
-  createProduct: (productData) => 
-    fetchWithAuth('/products', {
-      method: 'POST',
-      body: productData,
-    }),
+  // HACKATHON MOD: Enhanced createProduct to handle both FormData and JSON
+  createProduct: (productData) => {
+    if (productData instanceof FormData) {
+      // Handle multipart/form-data for image uploads
+      return fetchWithAuth('/products', {
+        method: 'POST',
+        body: productData, // FormData automatically sets correct Content-Type
+      });
+    } else {
+      // Handle JSON fallback
+      return fetchWithAuth('/products', {
+        method: 'POST',
+        body: productData,
+      });
+    }
+  },
+
+  // HACKATHON MOD: Enhanced createProduct with progress tracking for uploads
+  createProductWithProgress: (productData, onProgress) => {
+    return new Promise((resolve, reject) => {
+      const token = getAuthToken();
+      const xhr = new XMLHttpRequest();
+
+      xhr.upload.addEventListener('progress', (e) => {
+        if (e.lengthComputable && onProgress) {
+          const percentComplete = (e.loaded / e.total) * 100;
+          onProgress(percentComplete);
+        }
+      });
+
+      xhr.addEventListener('load', () => {
+        try {
+          const data = JSON.parse(xhr.responseText);
+          if (xhr.status >= 200 && xhr.status < 300) {
+            resolve(data);
+          } else {
+            reject(new Error(data.message || `HTTP error! status: ${xhr.status}`));
+          }
+        } catch (error) {
+          reject(new Error('Invalid response format'));
+        }
+      });
+
+      xhr.addEventListener('error', () => {
+        reject(new Error('Upload failed'));
+      });
+
+      xhr.open('POST', `${API_BASE_URL}/products`);
+      if (token) {
+        xhr.setRequestHeader('Authorization', `Bearer ${token}`);
+      }
+      xhr.send(productData);
+    });
+  },
 
   updateProduct: (id, productData) => 
     fetchWithAuth(`/products/${id}`, {

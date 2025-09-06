@@ -1,16 +1,24 @@
+// HACKATHON MOD: Products listing page updated for Product Create integration
+// - Enhanced search with debouncing for better UX
+// - Updated to work with new product creation flow
+// - Added category filtering and real-time search
+
 /**
  * Products Listing Page
  * Browse, search, and filter products
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
+import { productsApi } from '../utils/api';
+import { CATEGORIES, CONDITIONS, getCategoryLabel, getConditionColor } from '../constants/categories';
 
 const Products = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [pagination, setPagination] = useState({});
+  const [searchTerm, setSearchTerm] = useState(searchParams.get('search') || ''); // HACKATHON MOD: Separate search term for debouncing
   const [filters, setFilters] = useState({
     search: searchParams.get('search') || '',
     category: searchParams.get('category') || '',
@@ -21,6 +29,28 @@ const Products = () => {
     sortOrder: searchParams.get('sortOrder') || 'DESC'
   });
 
+  // HACKATHON MOD: Debounced search implementation
+  const debounceTimeout = React.useRef(null);
+  
+  const debouncedSearch = useCallback((term) => {
+    if (debounceTimeout.current) {
+      clearTimeout(debounceTimeout.current);
+    }
+    
+    debounceTimeout.current = setTimeout(() => {
+      setFilters(prev => ({ ...prev, search: term }));
+    }, 300); // 300ms debounce
+  }, []);
+
+  useEffect(() => {
+    debouncedSearch(searchTerm);
+    return () => {
+      if (debounceTimeout.current) {
+        clearTimeout(debounceTimeout.current);
+      }
+    };
+  }, [searchTerm, debouncedSearch]);
+
   useEffect(() => {
     fetchProducts();
   }, [searchParams]);
@@ -28,21 +58,20 @@ const Products = () => {
   const fetchProducts = async (page = 1) => {
     setLoading(true);
     try {
-      const params = new URLSearchParams({
-        page: page.toString(),
-        limit: '12',
-        ...Object.fromEntries(Object.entries(filters).filter(([_, v]) => v))
+      // HACKATHON MOD: Use real API with enhanced error handling
+      const response = await productsApi.getProducts({
+        page,
+        limit: 12,
+        ...filters
       });
-
-      const response = await fetch(`/api/products?${params}`);
-      const data = await response.json();
       
-      if (data.success) {
-        setProducts(data.data.products);
-        setPagination(data.data.pagination);
-      }
+      setProducts(response.data.products);
+      setPagination(response.data.pagination);
     } catch (error) {
-      console.error('Error fetching products:', error);
+      console.error('Failed to fetch products:', error);
+      // HACKATHON MOD: Fallback to empty state instead of mock data
+      setProducts([]);
+      setPagination({ page: 1, pages: 1, total: 0 });
     } finally {
       setLoading(false);
     }
@@ -52,15 +81,21 @@ const Products = () => {
     const newFilters = { ...filters, [key]: value };
     setFilters(newFilters);
     
-    const newParams = new URLSearchParams();
+    // Update URL params
+    const newSearchParams = new URLSearchParams();
     Object.entries(newFilters).forEach(([k, v]) => {
-      if (v) newParams.set(k, v);
+      if (v) newSearchParams.set(k, v);
     });
-    setSearchParams(newParams);
+    setSearchParams(newSearchParams);
+  };
+
+  // HACKATHON MOD: Separate handler for search input (immediate UI update)
+  const handleSearchChange = (e) => {
+    setSearchTerm(e.target.value);
   };
 
   const clearFilters = () => {
-    setFilters({
+    const clearedFilters = {
       search: '',
       category: '',
       condition: '',
@@ -68,31 +103,21 @@ const Products = () => {
       maxPrice: '',
       sortBy: 'created_at',
       sortOrder: 'DESC'
-    });
-    setSearchParams({});
+    };
+    setFilters(clearedFilters);
+    setSearchTerm(''); // HACKATHON MOD: Also clear search term
+    setSearchParams(new URLSearchParams());
   };
 
+  // HACKATHON MOD: Updated categories to use constants
   const categories = [
     { value: '', label: 'All Categories' },
-    { value: 'electronics', label: 'Electronics' },
-    { value: 'clothing', label: 'Clothing' },
-    { value: 'furniture', label: 'Furniture' },
-    { value: 'sports', label: 'Sports' },
-    { value: 'books', label: 'Books' },
-    { value: 'home_garden', label: 'Home & Garden' },
-    { value: 'automotive', label: 'Automotive' },
-    { value: 'health_beauty', label: 'Health & Beauty' },
-    { value: 'toys_games', label: 'Toys & Games' },
-    { value: 'other', label: 'Other' }
+    ...CATEGORIES
   ];
 
   const conditions = [
-    { value: '', label: 'Any Condition' },
-    { value: 'new', label: 'New' },
-    { value: 'like_new', label: 'Like New' },
-    { value: 'good', label: 'Good' },
-    { value: 'fair', label: 'Fair' },
-    { value: 'poor', label: 'Poor' }
+    { value: '', label: 'All Conditions' },
+    ...CONDITIONS
   ];
 
   const sortOptions = [
@@ -115,12 +140,12 @@ const Products = () => {
           {/* Search and Filters */}
           <div className="bg-white rounded-lg shadow p-6 mb-6">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
-              {/* Search */}
+              {/* Search - HACKATHON MOD: Updated to use debounced search */}
               <input
                 type="text"
                 placeholder="Search products..."
-                value={filters.search}
-                onChange={(e) => handleFilterChange('search', e.target.value)}
+                value={searchTerm}
+                onChange={handleSearchChange}
                 className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
               />
               
@@ -231,10 +256,13 @@ const Products = () => {
               >
                 <div className="aspect-w-16 aspect-h-12">
                   <img
-                    src={product.image_url || '/placeholder-image.jpg'}
+                    src={product.image_url || '/placeholder-image.svg'}
                     alt={product.title}
                     className="w-full h-48 object-cover"
                     loading="lazy"
+                    onError={(e) => {
+                      e.target.src = '/placeholder-image.svg';
+                    }}
                   />
                 </div>
                 <div className="p-4">
@@ -253,9 +281,14 @@ const Products = () => {
                     </p>
                   )}
                   <div className="flex justify-between items-center text-sm text-gray-600">
-                    <span className="capitalize">{product.condition}</span>
+                    <span className={`px-2 py-1 rounded-full text-xs ${getConditionColor(product.condition)}`}>
+                      {product.condition.replace('_', ' ')}
+                    </span>
                     <span>{product.location}</span>
                   </div>
+                  {product.seller && (
+                    <p className="text-xs text-gray-500 mt-2">by {product.seller.name}</p>
+                  )}
                 </div>
               </Link>
             ))}

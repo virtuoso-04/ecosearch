@@ -1,3 +1,8 @@
+// HACKATHON MOD: Product routes updated for image upload functionality
+// - Added multer middleware for handling multipart/form-data
+// - Enhanced product creation with image upload support
+// - Fallback to placeholder when no images provided
+
 /**
  * Product Routes
  * CRUD operations and search functionality for products
@@ -6,6 +11,7 @@
 const express = require('express');
 const { Op } = require('sequelize');
 const { authenticate, optionalAuth } = require('../middleware/auth');
+const { uploadProductImages } = require('../middleware/upload'); // HACKATHON MOD: Added upload middleware
 const { Product, User } = require('../models');
 
 const router = express.Router();
@@ -132,18 +138,17 @@ router.get('/:id', optionalAuth, async (req, res, next) => {
  * @route   POST /api/products
  * @desc    Create new product
  * @access  Private
+ * // HACKATHON MOD: Enhanced with image upload support and validation
  */
-router.post('/', authenticate, async (req, res, next) => {
+router.post('/', authenticate, uploadProductImages, async (req, res, next) => {
   try {
     const {
       title,
       description,
       price,
-      original_price,
+      originalPrice,
       category,
       condition,
-      image_url,
-      images,
       location,
       latitude,
       longitude,
@@ -151,20 +156,75 @@ router.post('/', authenticate, async (req, res, next) => {
       expires_at
     } = req.body;
 
+    // HACKATHON MOD: Handle uploaded images
+    let images = [];
+    let image_url = null;
+
+    if (req.files && req.files.length > 0) {
+      // Process uploaded files
+      images = req.files.map(file => ({
+        url: `/uploads/${file.filename}`,
+        alt: title || 'Product image',
+        filename: file.filename
+      }));
+      
+      // Set first image as main image
+      image_url = images[0].url;
+    } else {
+      // HACKATHON MOD: Use placeholder if no images uploaded
+      images = [{
+        url: '/placeholder-image.svg',
+        alt: 'Product placeholder image'
+      }];
+      image_url = '/placeholder-image.svg';
+    }
+
+    // HACKATHON MOD: Enhanced validation
+    if (!title || title.trim().length < 3) {
+      return res.status(400).json({
+        success: false,
+        message: 'Title must be at least 3 characters long'
+      });
+    }
+
+    if (!category) {
+      return res.status(400).json({
+        success: false,
+        message: 'Category is required'
+      });
+    }
+
+    if (!price || parseFloat(price) <= 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Price must be greater than 0'
+      });
+    }
+
+    // Parse arrays from form data
+    let parsedTags = [];
+    if (tags) {
+      try {
+        parsedTags = typeof tags === 'string' ? JSON.parse(tags) : tags;
+      } catch (e) {
+        parsedTags = [];
+      }
+    }
+
     const product = await Product.create({
-      title,
-      description,
-      price,
-      original_price,
+      title: title.trim(),
+      description: description ? description.trim() : null,
+      price: parseFloat(price),
+      original_price: originalPrice ? parseFloat(originalPrice) : null,
       category,
-      condition,
+      condition: condition || 'good',
       image_url,
       images,
-      location,
-      latitude,
-      longitude,
-      tags,
-      expires_at,
+      location: location ? location.trim() : null,
+      latitude: latitude ? parseFloat(latitude) : null,
+      longitude: longitude ? parseFloat(longitude) : null,
+      tags: parsedTags,
+      expires_at: expires_at || null,
       seller_id: req.user.id
     });
 
@@ -183,6 +243,26 @@ router.post('/', authenticate, async (req, res, next) => {
       data: { product: productWithSeller }
     });
   } catch (error) {
+    // HACKATHON MOD: Enhanced error handling for upload errors
+    if (error.code === 'LIMIT_FILE_SIZE') {
+      return res.status(400).json({
+        success: false,
+        message: 'File size too large. Maximum 5MB per image.'
+      });
+    }
+    if (error.code === 'LIMIT_FILE_COUNT') {
+      return res.status(400).json({
+        success: false,
+        message: 'Too many files. Maximum 5 images allowed.'
+      });
+    }
+    if (error.message === 'Only image files are allowed') {
+      return res.status(400).json({
+        success: false,
+        message: 'Only image files are allowed.'
+      });
+    }
+    
     next(error);
   }
 });
