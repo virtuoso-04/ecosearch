@@ -1,332 +1,503 @@
-# 🌱 EcoSearch Marketplace
+# 🌱 EcoFinds - Sustainable Second-Hand Marketplace
 
-![Hackathon Ready](https://img.shields.io/badge/hackathon-ready-brightgreen)
+![Version](https://img.shields.io/badge/version-2.0.0-brightgreen)
+![React](https://img.shields.io/badge/frontend-React_18-blue?logo=react)
 ![Node.js](https://img.shields.io/badge/backend-Node.js-informational?logo=node.js)
-![React](https://img.shields.io/badge/frontend-React-blue?logo=react)
-![MySQL](https://img.shields.io/badge/database-MySQL-orange?logo=mysql)
-![License: MIT](https://img.shields.io/badge/license-MIT-yellow)
+![SQLite](https://img.shields.io/badge/database-SQLite-orange?logo=sqlite)
+![Status](https://img.shields.io/badge/status-ready_for_demo-success)
 
-> A professional, full-stack sustainable marketplace application for buying and selling eco-friendly products, featuring a modern React frontend with Vite and a robust Node.js backend with MySQL database.
+> **A modern, full-stack sustainable marketplace platform that empowers users to buy and sell pre-loved items, promoting circular economy and environmental consciousness.**
+
+## 📖 Table of Contents
+
+- [✨ Features](#-features)
+- [🚀 Quick Start](#-quick-start)
+- [📱 How to Use the App](#-how-to-use-the-app)
+- [🏗️ Technical Architecture](#️-technical-architecture)
+- [📦 Project Structure](#-project-structure)
+- [🔧 API Documentation](#-api-documentation)
+- [🎨 UI/UX Design](#-uiux-design)
+- [🌍 Environment Setup](#-environment-setup)
+- [🚀 Deployment](#-deployment)
+
+---
 
 ## ✨ Features
 
-- 🔐 **Secure Authentication**: JWT-based login/registration with bcrypt encryption
-- 👤 **User Management**: Complete profile system with role-based access
-- 📦 **Product Catalog**: Full CRUD operations for eco-friendly product listings
-- 🔍 **Advanced Search**: Real-time search with category and price filtering
-- 🛒 **Shopping Experience**: Modern cart system with order management
-- 💳 **Order Processing**: Complete checkout flow with order tracking
-- 🏪 **Vendor System**: Multi-vendor marketplace capabilities
-- 📱 **Responsive Design**: Modern UI that works on all devices
-- 🌱 **Sustainability Focus**: Emphasis on eco-friendly and sustainable products
-- 🚀 **Production Ready**: Comprehensive error handling and security features
+### 🔐 **Authentication & User Management**
+- Secure JWT-based login and registration
+- User profiles with avatar and bio
+- Password encryption with bcrypt
+- Session management and logout
+
+### 🛍️ **Marketplace Functionality**
+- Browse products with advanced filtering
+- Search by keywords, categories, and price ranges
+- Grid and list view options
+- Product condition ratings (New → Poor)
+- Seller ratings and reviews
+
+### 🛒 **Shopping Experience**
+- Interactive shopping cart with quantity controls
+- Order creation and management
+- Purchase history tracking
+- Real-time cart updates
+
+### 📦 **Selling Platform**
+- Easy product listing creation
+- Photo upload with drag-and-drop
+- Category selection and condition rating
+- Price comparison with original retail value
+
+### 🌱 **Sustainability Focus**
+- CO₂ savings calculator
+- Environmental impact tracking
+- Circular economy messaging
+- Waste reduction statistics
+
+### 📱 **Modern UI/UX**
+- Fully responsive design (mobile-first)
+- Clean, intuitive interface
+- Smooth animations and transitions
+- Professional component library
+
+---
 
 ## 🚀 Quick Start
 
 ### Prerequisites
-- Node.js 16+ and npm
-- MySQL 8.0+ 
-- Git
+- **Node.js** 16+ and npm
+- **Git** for version control
 
-### Installation & Setup
+### Installation (60 seconds setup!)
 
 ```bash
 # 1. Clone the repository
 git clone https://github.com/virtuoso-04/ecosearch.git
 cd ecosearch
 
-# 2. Install all dependencies (both client and server)
-npm run install:all
+# 2. Install all dependencies (both frontend and backend)
+npm install
 
-# 3. Configure Environment
-# Copy and configure your environment variables
-cp server/.env.example server/.env
-# Edit server/.env with your MySQL credentials and JWT secret
-
-# 4. Setup Database
-# Make sure MySQL is running, then:
-cd server
-npm run db:setup
-# This will create tables and run migrations
-
-# 5. Start the Application
-cd ..
-npm run dev
-# This starts both client (localhost:5173) and server (localhost:3000)
-```
-
-### Quick Development Start
-```bash
-# Install dependencies for both client and server
-npm run install:all
-
-# Start both client and server concurrently
+# 3. Start the development servers
 npm run dev
 
-# Access the application
+# 🎉 Done! The app is running at:
 # Frontend: http://localhost:5173
-# Backend API: http://localhost:3000
+# Backend API: http://localhost:3001
 ```
 
-## 🏗️ Architecture
-
-```
-Frontend (React + Vite + TailwindCSS)
-    ↓ API Calls (Axios)
-Backend (Node.js + Express + Sequelize)
-    ↓ ORM Queries
-Database (MySQL)
-```
-
-### System Design
-- **Frontend**: Modern React with Vite for fast development and building
-- **API Layer**: RESTful API with JWT authentication
-- **Database**: MySQL with Sequelize ORM for robust data management
-- **Security**: bcrypt password hashing, JWT tokens, CORS protection
-- **Development**: Concurrent development with hot reloading
-
-## 📦 Tech Stack
-
-**Frontend:**
-- React 18 with modern hooks and functional components
-- Vite for lightning-fast development and optimized builds
-- TailwindCSS for modern, responsive styling
-- React Router for client-side navigation
-- Axios for API communication
-- Context API for state management
-
-**Backend:**
-- Node.js with Express.js framework
-- Sequelize ORM with MySQL database
-- JWT authentication with bcrypt password hashing
-- Express-validator for robust input validation
-- CORS and security middleware
-- UUID primary keys for enhanced security
-
-**Database:**
-- MySQL 8.0+ for production-ready data storage
-- Sequelize migrations for version control
-- Optimized schema with proper relationships
-- Foreign key constraints and data integrity
-
-## 🖥️ API Documentation
-
-### Authentication Endpoints
-```
-POST /api/auth/register - Register new user
-POST /api/auth/login - Login user
-POST /api/auth/logout - Logout user
-GET  /api/auth/me - Get current user info (auth required)
-```
-
-### Product Management
-```
-GET    /api/products - List all products with filtering
-POST   /api/products - Create new product (auth required)
-GET    /api/products/:id - Get product details
-PUT    /api/products/:id - Update product (auth required)
-DELETE /api/products/:id - Delete product (auth required)
-GET    /api/products/category/:category - Get products by category
-```
-
-### User Management
-```
-GET /api/users/profile - Get user profile (auth required)
-PUT /api/users/profile - Update profile (auth required)
-GET /api/users/:id - Get public user info
-```
-
-### Order Management
-```
-GET    /api/orders - List user orders (auth required)
-POST   /api/orders - Create new order (auth required)
-GET    /api/orders/:id - Get order details (auth required)
-PUT    /api/orders/:id/status - Update order status (auth required)
-```
-
-### Categories & Search
-```
-GET /api/categories - List all categories
-GET /api/search?q=query&category=cat&minPrice=0&maxPrice=1000 - Search products
-```
-
-## 🎨 Design & User Experience
-
-The application features a modern, clean design focused on sustainability:
-
-- **Modern UI**: Clean, professional interface with intuitive navigation
-- **Responsive Design**: Seamless experience across desktop, tablet, and mobile
-- **Accessibility**: WCAG-compliant design with proper contrast and keyboard navigation
-- **Performance**: Optimized images and lazy loading for fast page loads
-- **Sustainability Theme**: Green color palette emphasizing eco-friendly messaging
-
-## 🚀 Development Scripts
-
-Available scripts in the root directory:
-
+### Alternative Setup
 ```bash
-# Install dependencies for both client and server
-npm run install:all
+# Install dependencies separately
+cd client && npm install
+cd ../server && npm install
+cd ..
 
-# Start both client and server in development mode
+# Start both servers
 npm run dev
-
-# Start only the client (React app)
-npm run client
-
-# Start only the server (Express API)
-npm run server
-
-# Build the client for production
-npm run build
-
-# Run client in production mode
-npm run preview
 ```
-
-## 🧪 Testing & Quality
-
-- **Error Handling**: Comprehensive error handling on both frontend and backend
-- **Input Validation**: Server-side validation with express-validator
-- **Security**: JWT authentication, password hashing, CORS protection
-- **Code Quality**: ESLint configuration for consistent code style
-- **Database**: Migration system for version-controlled schema changes
-
-## 🌍 Environment Configuration
-
-Create a `.env` file in the `server/` directory:
-
-```env
-# Database Configuration
-DB_HOST=localhost
-DB_PORT=3306
-DB_NAME=ecosearch
-DB_USER=your_mysql_username
-DB_PASSWORD=your_mysql_password
-
-# JWT Configuration
-JWT_SECRET=your_super_secret_jwt_key_here
-JWT_EXPIRES_IN=7d
-
-# Server Configuration
-PORT=3000
-NODE_ENV=development
-
-# CORS Configuration
-CLIENT_URL=http://localhost:5173
-```
-
-## 🚀 Deployment Ready
-
-### Production Considerations
-- **Environment Variables**: Secure configuration management
-- **Database**: MySQL ready for cloud deployment (AWS RDS, Google Cloud SQL)
-- **Frontend**: Vite builds optimized static assets for CDN deployment
-- **Backend**: Express server ready for containerization and cloud hosting
-- **Security**: Production-ready security measures implemented
-
-### Deployment Options
-- **Frontend**: Vercel, Netlify, or AWS S3 + CloudFront
-- **Backend**: Heroku, AWS EC2, Google Cloud Run, or DigitalOcean
-- **Database**: AWS RDS, Google Cloud SQL, or managed MySQL hosting
-- **Full Stack**: Docker containerization ready
-
-## 📁 Project Structure
-
-```
-ecosearch/
-├── client/                    # React frontend application
-│   ├── public/               # Static assets
-│   ├── src/
-│   │   ├── components/       # Reusable UI components
-│   │   ├── pages/           # Page components
-│   │   ├── context/         # React context providers
-│   │   ├── utils/           # Utility functions
-│   │   └── App.jsx          # Main app component
-│   ├── package.json
-│   └── vite.config.js       # Vite configuration
-├── server/                   # Express backend application
-│   ├── controllers/         # Route handlers and business logic
-│   ├── models/             # Sequelize database models
-│   ├── routes/             # API route definitions
-│   ├── middleware/         # Custom Express middleware
-│   ├── config/             # Database and app configuration
-│   ├── migrations/         # Database migration files
-│   └── app.js              # Express application setup
-├── package.json             # Root package.json with scripts
-├── .gitignore              # Git ignore rules
-└── README.md               # Project documentation
-```
-
-## 🏆 Hackathon Highlights
-
-### Technical Excellence
-- **Production-Ready Code**: Clean, well-documented, and scalable architecture
-- **Modern Tech Stack**: Latest versions of React, Node.js, and industry best practices
-- **Security First**: JWT authentication, input validation, and secure database design
-- **Performance Optimized**: Vite for fast builds, efficient API design, and optimized queries
-
-### Features & Functionality
-- **Complete Marketplace**: End-to-end buying and selling platform
-- **User Management**: Registration, authentication, and profile management
-- **Product Catalog**: Advanced search, filtering, and categorization
-- **Order System**: Complete shopping cart and checkout functionality
-- **Responsive Design**: Works perfectly on all devices
-
-### Sustainability Focus
-- **Eco-Friendly Mission**: Platform designed to promote sustainable commerce
-- **Reusable Products**: Emphasis on selling and buying eco-friendly items
-- **Green UI/UX**: Design elements that reinforce environmental consciousness
-- **Community Building**: Features that encourage sustainable practices
-
-### Development Quality
-- **Clean Architecture**: Separation of concerns with clear project structure
-- **Database Design**: Normalized MySQL schema with proper relationships
-- **API Design**: RESTful endpoints with consistent error handling
-- **Documentation**: Comprehensive README and inline code documentation
-
-## 🎬 Demo Guide
-
-### Quick Demo Flow
-1. **Setup**: `npm run install:all && npm run dev`
-2. **Registration**: Create a new user account
-3. **Browse Products**: Explore the product catalog with search and filters
-4. **Add Products**: Demonstrate creating new product listings
-5. **Shopping**: Add items to cart and complete an order
-6. **Profile**: Show user profile and order history
-
-### Key Demo Points
-- **Fast Setup**: Application runs in under 2 minutes
-- **Modern UI**: Clean, professional interface
-- **Full Functionality**: Complete marketplace features
-- **Responsive**: Works on mobile and desktop
-- **Sustainability**: Clear focus on eco-friendly commerce
-
-## 🤝 Contributing
-
-This project is open for contributions! Areas for enhancement:
-
-- Additional payment gateway integrations
-- Advanced recommendation algorithms
-- Social features (ratings, reviews, seller profiles)
-- Mobile app development (React Native)
-- Admin dashboard for marketplace management
-- Analytics and reporting features
-
-## 📞 Support
-
-For questions or support:
-- Check the documentation in this README
-- Review API documentation above
-- Check the issue tracker for known problems
-- Contact the development team
-
-## 📄 License
-
-MIT License - see LICENSE file for details
 
 ---
 
-**Built with 💚 for a sustainable future**
+## 📱 How to Use the App
 
-*EcoSearch - Making sustainable commerce accessible to everyone*
+### 🏠 **Getting Started**
+1. **Open the app** at [http://localhost:5173](http://localhost:5173)
+2. **Explore the homepage** to understand the platform's mission
+3. **Browse categories** to see different product types
+
+### 👤 **User Account**
+1. **Sign Up/Login**
+   - Click "Login" in the top-right corner
+   - Toggle between "Sign In" and "Create Account"
+   - Fill in your details and submit
+   - *Note: Currently uses mock authentication*
+
+2. **Profile Management**
+   - Navigate to "Profile" in the header
+   - View your dashboard with statistics
+   - Edit profile information
+   - Track your environmental impact
+
+### 🛍️ **Shopping**
+1. **Browse Products**
+   - Click "Browse" or visit `/products`
+   - Use search bar for specific items
+   - Apply filters: category, condition, price range
+   - Toggle between grid and list views
+
+2. **Product Details**
+   - Click on any product card
+   - View detailed information
+   - Check seller ratings and reviews
+   - See environmental savings
+
+3. **Shopping Cart**
+   - Click "Add to Cart" on products
+   - Access cart via header icon
+   - Adjust quantities or remove items
+   - View total price and environmental impact
+   - Proceed to checkout
+
+### 📦 **Selling Items**
+1. **Create Listing**
+   - Click "Sell" in the navigation
+   - Upload product photos (drag & drop)
+   - Fill in title, description, and category
+   - Select condition (honest assessment)
+   - Set competitive pricing
+   - Add location for local pickup
+
+2. **Manage Listings**
+   - Go to Dashboard → "My Listings"
+   - Edit or deactivate listings
+   - View listing statistics and views
+   - Track sales performance
+
+### 📊 **Dashboard Features**
+1. **Overview Tab**
+   - View selling/buying statistics
+   - Environmental impact metrics
+   - Recent activity feed
+   - Quick action buttons
+
+2. **My Listings Tab**
+   - Manage all your product listings
+   - View performance metrics
+   - Edit or remove products
+   - Track views and engagement
+
+3. **Purchase History**
+   - Review all past purchases
+   - Download receipts
+   - Contact sellers
+   - Leave reviews
+
+4. **Profile Settings**
+   - Update personal information
+   - Change profile picture
+   - Manage account preferences
+   - View membership details
+
+### 🔍 **Advanced Features**
+- **Smart Search**: Type keywords to find specific items
+- **Category Filtering**: Browse by Electronics, Clothing, Furniture, etc.
+- **Price Ranges**: Set minimum and maximum price filters
+- **Condition Filtering**: Find items in your preferred condition
+- **Sorting Options**: Order by newest, price, or popularity
+
+---
+
+## 🏗️ Technical Architecture
+
+### **Frontend Stack**
+```
+React 18 + Vite + TailwindCSS + React Router
+├── Modern component architecture
+├── Responsive design system
+├── State management with Context API
+├── Routing with React Router DOM
+└── Icon library (Lucide React)
+```
+
+### **Backend Stack**
+```
+Node.js + Express + Sequelize + SQLite
+├── RESTful API architecture
+├── JWT authentication
+├── Database ORM with Sequelize
+├── File upload handling
+└── Comprehensive error handling
+```
+
+### **Database Schema**
+```
+Users ←→ Products (One-to-Many)
+Users ←→ Cart (One-to-Many)
+Users ←→ Orders (One-to-Many)
+Orders ←→ OrderItems (One-to-Many)
+Products ←→ OrderItems (One-to-Many)
+```
+
+### **Development Workflow**
+```
+Development: Vite Dev Server + Nodemon
+Production: Optimized builds + Production server
+Database: SQLite for development, PostgreSQL/MySQL for production
+```
+
+---
+
+## 📦 Project Structure
+
+```
+ecosearch/
+├── 📁 client/                    # Frontend React application
+│   ├── 📁 public/               # Static assets and favicon
+│   ├── 📁 src/
+│   │   ├── 📁 components/       # Reusable UI components
+│   │   │   └── Navbar.jsx       # Navigation component
+│   │   ├── 📁 pages/           # Page components
+│   │   │   ├── HomePage.jsx     # Landing page
+│   │   │   ├── ProductsPage.jsx # Product catalog
+│   │   │   ├── LoginPage.jsx    # Authentication
+│   │   │   ├── SellPage.jsx     # Create listings
+│   │   │   ├── CartPage.jsx     # Shopping cart
+│   │   │   └── DashboardPage.jsx# User dashboard
+│   │   ├── 📁 context/         # React context providers
+│   │   ├── App.jsx             # Main app with routing
+│   │   ├── index.jsx           # React entry point
+│   │   └── index.css           # Global styles
+│   ├── package.json            # Frontend dependencies
+│   ├── vite.config.js          # Vite configuration
+│   └── tailwind.config.js      # TailwindCSS config
+├── 📁 server/                   # Backend Express application
+│   ├── 📁 config/              # Configuration files
+│   │   └── database.js         # Database connection
+│   ├── 📁 models/              # Sequelize models
+│   │   ├── User.js             # User model
+│   │   ├── Product.js          # Product model
+│   │   ├── Cart.js             # Cart model
+│   │   ├── Order.js            # Order model
+│   │   └── index.js            # Model associations
+│   ├── 📁 routes/              # API route handlers
+│   │   ├── auth.js             # Authentication routes
+│   │   ├── users.js            # User management
+│   │   ├── products.js         # Product CRUD
+│   │   ├── cart.js             # Cart operations
+│   │   └── orders.js           # Order processing
+│   ├── 📁 middleware/          # Express middleware
+│   │   └── auth.js             # JWT authentication
+│   ├── 📁 migrations/          # Database migrations
+│   ├── app.js                  # Express app setup
+│   └── package.json            # Backend dependencies
+├── package.json                # Root scripts and dependencies
+├── README.md                   # This documentation
+└── .gitignore                  # Git ignore rules
+```
+
+---
+
+## 🔧 API Documentation
+
+### **Authentication Endpoints**
+```http
+POST /api/auth/register          # Register new user
+POST /api/auth/login             # User login
+GET  /api/auth/profile           # Get user profile (protected)
+PUT  /api/auth/profile           # Update profile (protected)
+```
+
+### **Product Management**
+```http
+GET    /api/products             # List products with filters
+POST   /api/products             # Create product (protected)
+GET    /api/products/:id         # Get product details
+PUT    /api/products/:id         # Update product (protected)
+DELETE /api/products/:id         # Delete product (protected)
+```
+
+### **Shopping Cart**
+```http
+GET    /api/cart                 # Get user's cart (protected)
+POST   /api/cart/add             # Add item to cart (protected)
+PUT    /api/cart/update          # Update item quantity (protected)
+DELETE /api/cart/remove/:id      # Remove item from cart (protected)
+DELETE /api/cart/clear           # Clear entire cart (protected)
+```
+
+### **Order Management**
+```http
+GET    /api/orders               # Get user orders (protected)
+POST   /api/orders/create        # Create order from cart (protected)
+GET    /api/orders/:id           # Get order details (protected)
+PUT    /api/orders/:id/status    # Update order status (protected)
+```
+
+### **User Dashboard**
+```http
+GET /api/users/dashboard         # Get dashboard stats (protected)
+GET /api/users/listings          # Get user's listings (protected)
+GET /api/users/sales            # Get sales history (protected)
+```
+
+---
+
+## 🎨 UI/UX Design
+
+### **Design System**
+- **Color Palette**: Green primary (#059669), supporting grays and blues
+- **Typography**: Inter font family with clear hierarchy
+- **Spacing**: 8px grid system for consistent spacing
+- **Components**: Reusable design tokens and components
+
+### **Responsive Breakpoints**
+```css
+Mobile:     < 640px   (sm)
+Tablet:     640px+    (md)
+Desktop:    1024px+   (lg)
+Large:      1280px+   (xl)
+```
+
+### **Key UI Features**
+- **Mobile-First Design**: Optimized for mobile experience
+- **Touch-Friendly**: Large tap targets and gesture support
+- **Loading States**: Skeleton screens and spinners
+- **Error Handling**: User-friendly error messages
+- **Accessibility**: WCAG compliant with proper contrast ratios
+
+---
+
+## 🌍 Environment Setup
+
+### **Development Environment**
+Create a `.env` file in the `server/` directory:
+
+```env
+# Server Configuration
+PORT=3001
+NODE_ENV=development
+
+# Database (SQLite - no configuration needed)
+DB_STORAGE=./database.sqlite
+
+# JWT Configuration
+JWT_SECRET=your_super_secret_jwt_key_for_development_change_in_production
+JWT_EXPIRES_IN=7d
+
+# CORS Configuration
+CLIENT_URL=http://localhost:5173
+
+# File Upload Configuration
+UPLOAD_PATH=./uploads
+MAX_FILE_SIZE=5242880
+```
+
+### **Production Environment**
+```env
+NODE_ENV=production
+PORT=3001
+JWT_SECRET=your_very_secure_production_jwt_secret
+CLIENT_URL=https://your-production-domain.com
+DB_URL=postgresql://user:password@host:5432/ecofinds
+```
+
+---
+
+## 🚀 Deployment
+
+### **Frontend Deployment (Vercel/Netlify)**
+```bash
+# Build the frontend
+cd client
+npm run build
+
+# Deploy the dist/ folder to your hosting platform
+```
+
+### **Backend Deployment (Heroku/Railway)**
+```bash
+# Prepare for deployment
+cd server
+npm install --production
+
+# Deploy using your platform's CLI
+```
+
+### **Full-Stack Deployment Options**
+- **Vercel + PlanetScale**: Frontend on Vercel, database on PlanetScale
+- **Netlify + Railway**: Frontend on Netlify, backend on Railway
+- **Digital Ocean**: Full-stack deployment on droplets
+- **AWS**: EC2 + RDS for production-grade deployment
+
+---
+
+## 🧪 Testing & Scripts
+
+### **Available Scripts**
+```bash
+# Development
+npm run dev              # Start both frontend and backend
+npm run dev:client       # Start only frontend (port 5173)
+npm run dev:server       # Start only backend (port 3001)
+
+# Production
+npm run build           # Build frontend for production
+npm run start           # Start production server
+npm run preview         # Preview production build
+
+# Utilities
+npm run install:all     # Install dependencies for both client/server
+npm run clean          # Clean node_modules and build files
+```
+
+### **Quality Assurance**
+- **Error Handling**: Comprehensive error boundaries and API error handling
+- **Input Validation**: Client-side and server-side validation
+- **Security**: JWT authentication, password hashing, CORS protection
+- **Performance**: Optimized builds, lazy loading, efficient queries
+
+---
+
+## 🏆 Demo Highlights
+
+### **Quick Demo Script**
+1. **Setup** (30 seconds): `npm run dev`
+2. **Homepage**: Show sustainable marketplace concept
+3. **Browse Products**: Demonstrate search and filtering
+4. **Product Details**: Show detailed product information
+5. **Shopping Cart**: Add items and checkout flow
+6. **Sell Item**: Create a new product listing
+7. **Dashboard**: User statistics and management
+
+### **Key Selling Points**
+- ⚡ **Fast Setup**: Running in under 60 seconds
+- 📱 **Mobile Ready**: Perfect mobile experience
+- 🎨 **Professional UI**: Modern, clean design
+- 🔧 **Full Featured**: Complete marketplace functionality
+- 🌱 **Sustainability**: Clear environmental focus
+- 🚀 **Production Ready**: Scalable architecture
+
+---
+
+## 🤝 Contributing
+
+### **Development Setup**
+1. Fork the repository
+2. Create a feature branch: `git checkout -b feature/amazing-feature`
+3. Make your changes
+4. Test thoroughly
+5. Submit a pull request
+
+### **Code Style**
+- Use Prettier for code formatting
+- Follow React hooks best practices
+- Write meaningful commit messages
+- Add comments for complex logic
+
+---
+
+## 📞 Support & Contact
+
+- **Issues**: [GitHub Issues](https://github.com/virtuoso-04/ecosearch/issues)
+- **Documentation**: This README and inline code comments
+- **Demo**: Available at [localhost:5173](http://localhost:5173) after setup
+
+---
+
+## 📄 License
+
+MIT License - see [LICENSE](LICENSE) file for details.
+
+---
+
+<div align="center">
+
+**🌱 Built with 💚 for a sustainable future**
+
+*EcoFinds - Empowering Sustainable Consumption through Second-Hand Commerce*
+
+**Ready for Demo • Production Grade • Fully Responsive**
+
+</div>
