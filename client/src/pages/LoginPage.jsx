@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Eye, EyeOff, Mail, Lock, User, ArrowRight, AlertCircle } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 const LoginPage = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { login, register, isAuthenticated, loading: authLoading, error: authError } = useAuth();
   const [isLogin, setIsLogin] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
@@ -17,12 +18,16 @@ const LoginPage = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   
+  // Get returnTo from query parameters
+  const params = new URLSearchParams(location.search);
+  const returnTo = params.get('returnTo') || '/';
+  
   // Redirect if already authenticated
   useEffect(() => {
     if (isAuthenticated) {
-      navigate('/');
+      navigate(returnTo);
     }
-  }, [isAuthenticated, navigate]);
+  }, [isAuthenticated, navigate, returnTo]);
 
   const validateForm = () => {
     // Reset error
@@ -288,7 +293,7 @@ const LoginPage = () => {
             <button 
               onClick={() => {
                 setLoading(true);
-                useAuth().demoLogin()
+                demoLogin() // Using demoLogin from useAuth() destructuring at the top
                   .catch(err => setError('Failed to login with demo account'))
                   .finally(() => setLoading(false));
               }}

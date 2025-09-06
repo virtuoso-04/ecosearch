@@ -101,30 +101,51 @@ export const useAuth = () => {
 };
 
 // API helper function
-const apiCall = async (url, options = {}) => {
-  const API_BASE_URL = '/api'; // Use the same base URL as in api.js
-  const token = localStorage.getItem('token');
-  const headers = {
-    'Content-Type': 'application/json',
-    ...(token && { Authorization: `Bearer ${token}` }),
-    ...options.headers
+  // API call function
+  const apiCall = async (endpoint, method = 'GET', data = null) => {
+    const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api'; // Use env variable with fallback
+    
+    // Ensure endpoint starts with / and doesn't duplicate the /api
+    const normalizedEndpoint = endpoint.startsWith('/') 
+      ? endpoint 
+      : `/${endpoint}`;
+    
+    const url = `${API_BASE_URL}${normalizedEndpoint}`;
+    
+    const headers = {
+      'Content-Type': 'application/json',
+    };
+
+    const token = state.token || localStorage.getItem('token');
+    
+    if (token) {
+      headers.Authorization = `Bearer ${token}`;
+    }
+
+    const config = {
+      method,
+      headers,
+      credentials: 'include',
+    };
+
+    if (data) {
+      config.body = JSON.stringify(data);
+    }
+
+    try {
+      const response = await fetch(url, config);
+      const responseData = await response.json();
+
+      if (!response.ok) {
+        throw new Error(responseData.message || 'Something went wrong');
+      }
+
+      return responseData;
+    } catch (error) {
+      console.error('API call error:', error);
+      throw error;
+    }
   };
-
-  const fullUrl = url.startsWith('http') ? url : `${API_BASE_URL}${url}`;
-
-  const response = await fetch(fullUrl, {
-    ...options,
-    headers
-  });
-
-  const data = await response.json();
-
-  if (!response.ok) {
-    throw new Error(data.message || 'Something went wrong');
-  }
-
-  return data;
-};
 
 // Auth Provider Component
 export const AuthProvider = ({ children }) => {
@@ -134,21 +155,44 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     const checkAuth = async () => {
       const token = localStorage.getItem('token');
+      const savedUser = localStorage.getItem('user');
+      
       if (token) {
         try {
-          const data = await apiCall('/api/auth/profile');
-          dispatch({
-            type: ActionTypes.LOGIN_SUCCESS,
-            payload: {
-              user: data.data.user,
-              token
-            }
-          });
+          // First restore user from localStorage for instant UI update
+          if (savedUser) {
+            const parsedUser = JSON.parse(savedUser);
+            dispatch({
+              type: ActionTypes.LOGIN_SUCCESS,
+              payload: {
+                user: parsedUser,
+                token
+              }
+            });
+          }
+          
+          // Then verify with backend (this will update if necessary)
+          const data = await apiCall('/auth/profile');
+          if (data && data.data && data.data.user) {
+            // Update localStorage with latest user data
+            localStorage.setItem('user', JSON.stringify(data.data.user));
+            
+            dispatch({
+              type: ActionTypes.LOGIN_SUCCESS,
+              payload: {
+                user: data.data.user,
+                token
+              }
+            });
+          }
         } catch (error) {
+          console.error('Auth verification error:', error);
           localStorage.removeItem('token');
+          localStorage.removeItem('user');
           dispatch({ type: ActionTypes.LOGOUT });
         }
       } else {
+        localStorage.removeItem('user');
         dispatch({ type: ActionTypes.SET_LOADING, payload: false });
       }
     };
@@ -158,55 +202,69 @@ export const AuthProvider = ({ children }) => {
 
   // Login function
   const login = async (credentials) => {
-    dispatch({ type: ActionTypes.LOGIN_START });
-    
+    dispatch({ type: ActionTypes.LOGIN_REQUEST });
+
     try {
-      const data = await apiCall('/api/auth/login', {
-        method: 'POST',
-        body: JSON.stringify(credentials)
-      });
-
-      localStorage.setItem('token', data.data.token);
+      const response = await apiCall('/auth/login', 'POST', credentials);
       
-      dispatch({
-        type: ActionTypes.LOGIN_SUCCESS,
-        payload: data.data
-      });
+      if (response.success) {
+        const { token, user } = response.data;
+        localStorage.setItem('token', token);
+        localStorage.setItem('user', JSON.stringify(user));
+        
+        dispatch({
+          type: ActionTypes.LOGIN_SUCCESS,
+          payload: { user, token }
+        });
 
-      return data;
+        return { success: true };
+      } else {
+        dispatch({
+          type: ActionTypes.LOGIN_FAILURE,
+          payload: response.message || 'Login failed'
+        });
+        return { success: false, message: response.message || 'Login failed' };
+      }
     } catch (error) {
+      const errorMessage = error.response?.data?.message || error.message || 'Login failed';
       dispatch({
         type: ActionTypes.LOGIN_FAILURE,
-        payload: error.message
+        payload: errorMessage
       });
-      throw error;
+      return { success: false, message: errorMessage };
     }
-  };
-
-  // Register function
+  };  // Register function
   const register = async (userData) => {
-    dispatch({ type: ActionTypes.LOGIN_START });
-    
+    dispatch({ type: ActionTypes.REGISTER_REQUEST });
+
     try {
-      const data = await apiCall('/api/auth/register', {
-        method: 'POST',
-        body: JSON.stringify(userData)
-      });
-
-      localStorage.setItem('token', data.data.token);
+      const response = await apiCall('/auth/register', 'POST', userData);
       
-      dispatch({
-        type: ActionTypes.LOGIN_SUCCESS,
-        payload: data.data
-      });
+      if (response.success) {
+        const { token, user } = response.data;
+        localStorage.setItem('token', token);
+        localStorage.setItem('user', JSON.stringify(user));
+        
+        dispatch({
+          type: ActionTypes.REGISTER_SUCCESS,
+          payload: { user, token }
+        });
 
-      return data;
+        return { success: true };
+      } else {
+        dispatch({
+          type: ActionTypes.REGISTER_FAILURE,
+          payload: response.message || 'Registration failed'
+        });
+        return { success: false, message: response.message || 'Registration failed' };
+      }
     } catch (error) {
+      const errorMessage = error.response?.data?.message || error.message || 'Registration failed';
       dispatch({
-        type: ActionTypes.LOGIN_FAILURE,
-        payload: error.message
+        type: ActionTypes.REGISTER_FAILURE,
+        payload: errorMessage
       });
-      throw error;
+      return { success: false, message: errorMessage };
     }
   };
 
@@ -215,30 +273,45 @@ export const AuthProvider = ({ children }) => {
     dispatch({ type: ActionTypes.LOGIN_START });
     
     try {
-      const data = await apiCall('/api/auth/demo-login', {
-        method: 'POST'
-      });
-
-      localStorage.setItem('token', data.data.token);
+      // First try demo-login endpoint if available
+      try {
+        const response = await apiCall('/auth/demo-login', 'POST');
+        
+        if (response.success) {
+          const { token, user } = response.data;
+          localStorage.setItem('token', token);
+          localStorage.setItem('user', JSON.stringify(user));
+          
+          dispatch({
+            type: ActionTypes.LOGIN_SUCCESS,
+            payload: { user, token }
+          });
+          
+          return { success: true };
+        }
+      } catch (err) {
+        console.log("Demo endpoint not available, falling back to credentials");
+      }
       
-      dispatch({
-        type: ActionTypes.LOGIN_SUCCESS,
-        payload: data.data
+      // Fall back to regular login with demo credentials
+      return await login({
+        email: 'demo@ecosearch.com',
+        password: 'demo123'
       });
-
-      return data;
     } catch (error) {
+      const errorMessage = error.message || 'Demo login failed';
       dispatch({
         type: ActionTypes.LOGIN_FAILURE,
-        payload: error.message
+        payload: errorMessage
       });
-      throw error;
+      return { success: false, message: errorMessage };
     }
   };
 
   // Logout function
   const logout = () => {
     localStorage.removeItem('token');
+    localStorage.removeItem('user');
     dispatch({ type: ActionTypes.LOGOUT });
   };
 

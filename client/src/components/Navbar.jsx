@@ -140,7 +140,9 @@ const Header = () => {
               }`}
             >
               <User className="h-4 w-4" />
-              <span className="hidden lg:inline">Profile</span>
+              <span className="hidden lg:inline">
+                {isAuthenticated && user ? `Hi, ${user.name?.split(' ')[0]}` : 'Profile'}
+              </span>
             </Link>
             {isAuthenticated ? (
               <button
@@ -257,13 +259,26 @@ const Header = () => {
               <span>My Profile</span>
             </Link>
             <div className="pt-2 border-t border-gray-200">
-              <Link
-                to="/login"
-                className="block w-full text-center bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded-md text-base font-medium"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                Login / Sign Up
-              </Link>
+              {isAuthenticated ? (
+                <button
+                  onClick={() => {
+                    handleLogout();
+                    setIsMenuOpen(false);
+                  }}
+                  className="w-full text-center bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded-md text-base font-medium flex items-center justify-center"
+                >
+                  <LogOut className="h-4 w-4 mr-2" />
+                  Logout
+                </button>
+              ) : (
+                <Link
+                  to="/login"
+                  className="block w-full text-center bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded-md text-base font-medium"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  Login / Sign Up
+                </Link>
+              )}
             </div>
           </div>
         </div>

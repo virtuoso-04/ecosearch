@@ -1,13 +1,14 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { AuthProvider } from './context/AuthContext'; // HACKATHON MOD: Added AuthProvider
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { AuthProvider } from './context/AuthContext';
 import Navbar from './components/Navbar';
+import ProtectedRoute from './components/ProtectedRoute';
 import HomePage from './pages/HomePage';
 import ProductsPage from './pages/ProductsPage';
 import ProductDetailPage from './pages/ProductDetailPage';
 import LoginPage from './pages/LoginPage';
-import CreateProductPage from './pages/CreateProductPage'; // HACKATHON MOD: Added create product page
-import MyListingsPage from './pages/MyListingsPage'; // HACKATHON MOD: Added my listings page
+import CreateProductPage from './pages/CreateProductPage';
+import MyListingsPage from './pages/MyListingsPage';
 import CartPage from './pages/CartPage';
 import DashboardPage from './pages/DashboardPage';
 import PreviousPurchasesPage from './pages/PreviousPurchasesPage';
@@ -30,12 +31,32 @@ function App() {
                   <Route path="/" element={<HomePage />} />
                   <Route path="/products" element={<ProductsPage />} />
                   <Route path="/products/:id" element={<ProductDetailPage />} />
-                  <Route path="/create-product" element={<CreateProductPage />} /> {/* HACKATHON MOD: Added route */}
-                  <Route path="/sell" element={<Navigate to="/create-product" replace />} /> {/* Redirect /sell to /create-product */}
-                  <Route path="/my-listings" element={<MyListingsPage />} /> {/* HACKATHON MOD: Added my listings route */}
-                  <Route path="/cart" element={<CartPage />} />
-                  <Route path="/purchases" element={<PreviousPurchasesPage />} />
-                  <Route path="/dashboard" element={<DashboardPage />} />
+                  <Route path="/create-product" element={
+                    <ProtectedRoute>
+                      <CreateProductPage />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/sell" element={<Navigate to="/create-product" replace />} />
+                  <Route path="/my-listings" element={
+                    <ProtectedRoute>
+                      <MyListingsPage />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/cart" element={
+                    <ProtectedRoute>
+                      <CartPage />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/purchases" element={
+                    <ProtectedRoute>
+                      <PreviousPurchasesPage />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/dashboard" element={
+                    <ProtectedRoute>
+                      <DashboardPage />
+                    </ProtectedRoute>
+                  } />
                   <Route path="*" element={<div className="min-h-screen flex items-center justify-center"><h1 className="text-2xl font-bold">Page Not Found</h1></div>} />
                 </Routes>
               </>
