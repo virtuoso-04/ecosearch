@@ -4,6 +4,7 @@ import { AuthProvider } from './context/AuthContext'; // HACKATHON MOD: Added Au
 import Navbar from './components/Navbar';
 import HomePage from './pages/HomePage';
 import ProductsPage from './pages/ProductsPage';
+import ProductDetailPage from './pages/ProductDetailPage';
 import LoginPage from './pages/LoginPage';
 import CreateProductPage from './pages/CreateProductPage'; // HACKATHON MOD: Added create product page
 import MyListingsPage from './pages/MyListingsPage'; // HACKATHON MOD: Added my listings page
@@ -27,6 +28,7 @@ function App() {
                 <Routes>
                   <Route path="/" element={<HomePage />} />
                   <Route path="/products" element={<ProductsPage />} />
+                  <Route path="/products/:id" element={<ProductDetailPage />} />
                   <Route path="/create-product" element={<CreateProductPage />} /> {/* HACKATHON MOD: Added route */}
                   <Route path="/sell" element={<Navigate to="/create-product" replace />} /> {/* Redirect /sell to /create-product */}
                   <Route path="/my-listings" element={<MyListingsPage />} /> {/* HACKATHON MOD: Added my listings route */}
