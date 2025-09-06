@@ -10,11 +10,11 @@ function MyListingsScreen() {
   const { user } = useAuth();
   const [products, setProducts] = useState([]);
   const [deleting, setDeleting] = useState(null);
-  
-  const { 
-    loading, 
-    error, 
-    execute: loadProducts 
+
+  const {
+    loading,
+    error,
+    execute: loadProducts
   } = useApi(apiService.getUserProducts);
 
   useEffect(() => {
@@ -38,104 +38,50 @@ function MyListingsScreen() {
     try {
       setDeleting(productId);
       await apiService.deleteProduct(productId);
-      setProducts(products.filter(p => p.id !== productId));
+      setProducts(products.filter((product) => product.id !== productId));
     } catch (err) {
-      alert('Failed to delete product: ' + err.message);
+      alert('Failed to delete product. Please try again.');
     } finally {
       setDeleting(null);
     }
   };
 
-  const handleEdit = (productId) => {
-    navigate(`/add-product/${productId}`);
-  };
-
-  if (loading) {
-    return <LoadingScreen message="Loading your listings..." />;
-  }
-
-  if (error) {
-    return (
-      <div className="p-4">
-        <ErrorMessage 
-          message={error} 
-          onRetry={loadUserProducts} 
-        />
-      </div>
-    );
-  }
-
   return (
-    <div className="p-4 max-w-6xl mx-auto">
-      <div className="flex justify-between items-center mb-6">
+    <div className="max-w-7xl mx-auto p-4">
+      <div className="flex justify-between items-center mb-4">
         <h1 className="text-2xl font-bold">My Listings</h1>
-        <Button onClick={() => navigate('/add-product')}>
-          Add New Product
+        <Button onClick={() => navigate('/add-product')} className="bg-green-500 text-white">
+          Create New Listing
         </Button>
       </div>
 
-      {products.length === 0 ? (
-        <EmptyState
-          title="No products listed yet"
-          description="Start selling by adding your first product!"
-          actionLabel="Add Product"
-          onAction={() => navigate('/add-product')}
-        />
+      {loading ? (
+        <LoadingScreen message="Loading your listings..." />
+      ) : error ? (
+        <ErrorMessage message={error} onRetry={loadUserProducts} />
+      ) : products.length === 0 ? (
+        <EmptyState message="You have no listings yet." />
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {products.map(product => (
-            <Card key={product.id} className="p-4">
-              <div className="aspect-square bg-gray-100 rounded-lg mb-3 overflow-hidden">
-                {product.imageUrl ? (
-                  <img 
-                    src={product.imageUrl} 
-                    alt={product.title}
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center text-gray-400">
-                    No Image
-                  </div>
-                )}
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+          {products.map((product) => (
+            <Card key={product.id} className="relative">
+              <img src={product.imageUrl} alt={product.title} className="w-full h-48 object-cover rounded" />
+              <div className="p-4">
+                <h2 className="text-lg font-bold">{product.title}</h2>
+                <p className="text-sm text-gray-600">{product.category}</p>
+                <p className="text-sm text-gray-800 font-semibold">${product.price}</p>
               </div>
-              
-              <h3 className="font-semibold text-lg mb-1 line-clamp-2">
-                {product.title}
-              </h3>
-              
-              {product.description && (
-                <p className="text-gray-600 text-sm mb-2 line-clamp-2">
-                  {product.description}
-                </p>
-              )}
-              
-              <div className="flex items-center justify-between mb-3">
-                <span className="text-xl font-bold text-green-600">
-                  ${product.price}
-                </span>
-                {product.category && (
-                  <span className="text-xs bg-gray-100 px-2 py-1 rounded-full">
-                    {product.category}
-                  </span>
-                )}
-              </div>
-
-              <div className="flex gap-2">
+              <div className="absolute top-2 right-2 flex space-x-2">
                 <Button
-                  variant="secondary"
-                  size="sm"
-                  onClick={() => handleEdit(product.id)}
-                  className="flex-1"
+                  onClick={() => navigate(`/edit-product/${product.id}`)}
+                  className="bg-blue-500 text-white"
                 >
                   Edit
                 </Button>
                 <Button
-                  variant="danger"
-                  size="sm"
                   onClick={() => handleDelete(product.id)}
+                  className="bg-red-500 text-white"
                   disabled={deleting === product.id}
-                  loading={deleting === product.id}
-                  className="flex-1"
                 >
                   {deleting === product.id ? 'Deleting...' : 'Delete'}
                 </Button>

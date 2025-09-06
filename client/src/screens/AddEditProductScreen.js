@@ -17,7 +17,7 @@ function AddEditProductScreen() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
-  
+
   const [initialProduct, setInitialProduct] = useState(null);
   const [loading, setLoading] = useState(!!id);
   const [error, setError] = useState('');
@@ -84,13 +84,12 @@ function AddEditProductScreen() {
 
     try {
       setSubmitting(true);
-      
       const productData = {
         title: values.title.trim(),
         description: values.description.trim(),
         category: values.category,
         price: parseFloat(values.price),
-        imageUrl: values.imageUrl.trim() || null
+        imageUrl: values.imageUrl
       };
 
       if (id) {
@@ -161,36 +160,34 @@ function AddEditProductScreen() {
             rows={4}
           />
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Select
-              label="Category"
-              name="category"
-              value={values.category}
-              onChange={handleChange}
-              onBlur={handleBlur}
-              error={touched.category ? validationErrors.category : ''}
-              required
-            >
-              <option value="">Select category</option>
-              {categories.map(cat => (
-                <option key={cat} value={cat}>{cat}</option>
-              ))}
-            </Select>
+          <Select
+            label="Category"
+            name="category"
+            value={values.category}
+            onChange={handleChange}
+            onBlur={handleBlur}
+            error={touched.category ? validationErrors.category : ''}
+            required
+          >
+            <option value="">Select category</option>
+            {categories.map(cat => (
+              <option key={cat} value={cat}>{cat}</option>
+            ))}
+          </Select>
 
-            <Input
-              label="Price"
-              name="price"
-              type="number"
-              step="0.01"
-              min="0.01"
-              value={values.price}
-              onChange={handleChange}
-              onBlur={handleBlur}
-              error={touched.price ? validationErrors.price : ''}
-              placeholder="0.00"
-              required
-            />
-          </div>
+          <Input
+            label="Price"
+            name="price"
+            type="number"
+            step="0.01"
+            min="0.01"
+            value={values.price}
+            onChange={handleChange}
+            onBlur={handleBlur}
+            error={touched.price ? validationErrors.price : ''}
+            placeholder="0.00"
+            required
+          />
 
           <Input
             label="Image URL"
@@ -203,18 +200,15 @@ function AddEditProductScreen() {
             placeholder="https://example.com/image.jpg"
           />
 
-          {values.imageUrl && (
-            <div className="mt-2">
-              <img 
-                src={values.imageUrl} 
-                alt="Preview" 
-                className="w-32 h-32 object-cover rounded-lg"
-                onError={e => e.target.style.display = 'none'}
+          {values.imageUrl && !validationErrors.imageUrl && (
+            <div className="mt-4">
+              <img
+                src={values.imageUrl}
+                alt="Preview"
+                className="w-full h-48 object-cover rounded"
               />
             </div>
           )}
-
-          {error && <ErrorMessage message={error} />}
 
           <Button
             type="submit"
