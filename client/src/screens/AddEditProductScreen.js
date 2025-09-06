@@ -1,35 +1,232 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
+import { useAuth } from '../App';
+import { useFormValidation } from '../hooks';
+import { Button, Input, Select, TextArea, ErrorMessage, LoadingScreen } from '../components/ui';
+import apiService from '../services/apiService';
 
-function AddEditProductScreen({ onSubmit, initial }) {
-  const [title, setTitle] = useState(initial?.title || '');
-  const [description, setDescription] = useState(initial?.description || '');
-  const [category, setCategory] = useState(initial?.category || '');
-  const [price, setPrice] = useState(initial?.price || '');
-  const [imageUrl, setImageUrl] = useState(initial?.imageUrl || '');
+const productValidationRules = {
+  title: { required: true, minLength: 3, maxLength: 100 },
+  price: { required: true, min: 0.01 },
+  category: { required: true },
+  description: { maxLength: 500 },
+  imageUrl: { pattern: /^https?:\/\/.+\.(jpg|jpeg|png|gif|webp)$/i }
+};
+
+function AddEditProductScreen() {
+  const { id } = useParams();
+  const navigate = useNavigate();
+  const { user } = useAuth();
+  
+  const [initialProduct, setInitialProduct] = useState(null);
+  const [loading, setLoading] = useState(!!id);
   const [error, setError] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+
+  const categories = ['Electronics', 'Clothing', 'Furniture', 'Sports', 'Books', 'Other'];
+
+  const {
+    values,
+    errors: validationErrors,
+    touched,
+    isValid,
+    handleChange,
+    handleBlur,
+    setValues,
+    validateForm
+  } = useFormValidation({
+    title: '',
+    description: '',
+    category: '',
+    price: '',
+    imageUrl: ''
+  }, productValidationRules);
+
+  useEffect(() => {
+    if (id) {
+      loadProduct();
+    }
+  }, [id]);
+
+  const loadProduct = async () => {
+    try {
+      setLoading(true);
+      const product = await apiService.getProduct(id);
+      
+      // Check if user owns this product
+      if (product.seller.id !== user.id) {
+        setError('You can only edit your own products');
+        return;
+      }
+
+      setInitialProduct(product);
+      setValues({
+        title: product.title,
+        description: product.description || '',
+        category: product.category || '',
+        price: product.price.toString(),
+        imageUrl: product.imageUrl || ''
+      });
+    } catch (err) {
+      setError(err.message || 'Failed to load product');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
-    if (!title || !price) return setError('Title and price required.');
+
+    if (!validateForm()) {
+      return;
+    }
+
     try {
-      await onSubmit({ title, description, category, price, imageUrl });
+      setSubmitting(true);
+      
+      const productData = {
+        title: values.title.trim(),
+        description: values.description.trim(),
+        category: values.category,
+        price: parseFloat(values.price),
+        imageUrl: values.imageUrl.trim() || null
+      };
+
+      if (id) {
+        await apiService.updateProduct(id, productData);
+      } else {
+        await apiService.createProduct(productData);
+      }
+
+      navigate(id ? '/my-listings' : '/products');
     } catch (err) {
-      setError(err.message);
+      setError(err.message || 'Failed to save product');
+    } finally {
+      setSubmitting(false);
     }
   };
 
+  if (loading) {
+    return <LoadingScreen message="Loading product..." />;
+  }
+
+  if (error && !submitting) {
+    return (
+      <div className="max-w-2xl mx-auto p-4">
+        <ErrorMessage 
+          message={error} 
+          onRetry={() => window.location.reload()} 
+        />
+      </div>
+    );
+  }
+
   return (
-    <form onSubmit={handleSubmit} className="bg-white p-8 rounded-xl shadow-lg w-96 mx-auto mt-8">
-      <h2 className="text-xl font-bold mb-4">{initial ? 'Edit' : 'Add'} Product</h2>
-      <input type="text" placeholder="Title" value={title} onChange={e => setTitle(e.target.value)} className="w-full mb-3 p-3 rounded-lg border" required />
-      <textarea placeholder="Description" value={description} onChange={e => setDescription(e.target.value)} className="w-full mb-3 p-3 rounded-lg border" />
-      <input type="text" placeholder="Category" value={category} onChange={e => setCategory(e.target.value)} className="w-full mb-3 p-3 rounded-lg border" />
-      <input type="number" placeholder="Price" value={price} onChange={e => setPrice(e.target.value)} className="w-full mb-3 p-3 rounded-lg border" required />
-      <input type="text" placeholder="Image URL" value={imageUrl} onChange={e => setImageUrl(e.target.value)} className="w-full mb-3 p-3 rounded-lg border" />
-      {error && <div className="text-red-500 mb-2 text-center">{error}</div>}
-      <button type="submit" className="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold shadow hover:bg-blue-700 transition">{initial ? 'Update' : 'Add'} Product</button>
-    </form>
+    <div className="max-w-2xl mx-auto p-4">
+      <div className="ios-card p-8">
+        <div className="flex items-center mb-6">
+          <Button 
+            variant="secondary"
+            onClick={() => navigate(-1)}
+            className="mr-4"
+          >
+            ← Back
+          </Button>
+          <h2 className="text-2xl font-bold">
+            {id ? 'Edit Product' : 'Add New Product'}
+          </h2>
+        </div>
+
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <Input
+            label="Title"
+            name="title"
+            value={values.title}
+            onChange={handleChange}
+            onBlur={handleBlur}
+            error={touched.title ? validationErrors.title : ''}
+            placeholder="Enter product title"
+            required
+          />
+
+          <TextArea
+            label="Description"
+            name="description"
+            value={values.description}
+            onChange={handleChange}
+            onBlur={handleBlur}
+            error={touched.description ? validationErrors.description : ''}
+            placeholder="Describe your product..."
+            rows={4}
+          />
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Select
+              label="Category"
+              name="category"
+              value={values.category}
+              onChange={handleChange}
+              onBlur={handleBlur}
+              error={touched.category ? validationErrors.category : ''}
+              required
+            >
+              <option value="">Select category</option>
+              {categories.map(cat => (
+                <option key={cat} value={cat}>{cat}</option>
+              ))}
+            </Select>
+
+            <Input
+              label="Price"
+              name="price"
+              type="number"
+              step="0.01"
+              min="0.01"
+              value={values.price}
+              onChange={handleChange}
+              onBlur={handleBlur}
+              error={touched.price ? validationErrors.price : ''}
+              placeholder="0.00"
+              required
+            />
+          </div>
+
+          <Input
+            label="Image URL"
+            name="imageUrl"
+            type="url"
+            value={values.imageUrl}
+            onChange={handleChange}
+            onBlur={handleBlur}
+            error={touched.imageUrl ? validationErrors.imageUrl : ''}
+            placeholder="https://example.com/image.jpg"
+          />
+
+          {values.imageUrl && (
+            <div className="mt-2">
+              <img 
+                src={values.imageUrl} 
+                alt="Preview" 
+                className="w-32 h-32 object-cover rounded-lg"
+                onError={e => e.target.style.display = 'none'}
+              />
+            </div>
+          )}
+
+          {error && <ErrorMessage message={error} />}
+
+          <Button
+            type="submit"
+            disabled={submitting || !isValid}
+            loading={submitting}
+            className="w-full"
+          >
+            {id ? 'Update Product' : 'Add Product'}
+          </Button>
+        </form>
+      </div>
+    </div>
   );
 }
 

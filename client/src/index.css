@@ -1,0 +1,24 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Custom styles for iOS look */
+.ios-card {
+  @apply bg-white rounded-xl shadow-lg border border-gray-100;
+}
+
+.ios-button {
+  @apply px-4 py-2 rounded-lg font-semibold shadow-sm transition-all duration-200;
+}
+
+.ios-button-primary {
+  @apply ios-button bg-blue-600 text-white hover:bg-blue-700 active:scale-95;
+}
+
+.ios-button-secondary {
+  @apply ios-button bg-gray-100 text-gray-800 hover:bg-gray-200 active:scale-95;
+}
+
+.ios-input {
+  @apply w-full p-3 rounded-lg border border-gray-300 focus:border-blue-500 focus:outline-none transition-colors;
+}
